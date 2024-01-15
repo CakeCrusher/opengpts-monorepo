@@ -1,13 +1,19 @@
 import os
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, Depends
 from openai import OpenAI
 from utils.parsers import get_user_id
 from db.database import SessionLocal
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from db import crud
-from models.thread import CustomThread, CreateThreadMessage, ThreadMessage
+from db import crud, schemas
+from models.thread import (
+    CustomThread,
+    CreateThreadMessage,
+    ThreadMessage,
+    ThreadMetadata,
+)
+from datetime import datetime
 
 load_dotenv()
 
@@ -30,13 +36,17 @@ def get_db():
         db.close()
 
 
-@router.post("/thread", response_model=CustomThread)
+@router.post("/gpt/{gpt_id}/thread", response_model=CustomThread)
 def create_thread(
+    gpt_id: str,
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
 ):
     """
     Create a thread.
+
+    Args:
+    - gpt_id (str): The ID of the GPT.
 
     Headers:
     - auth (str): Bearer <USER_ID>
@@ -44,18 +54,28 @@ def create_thread(
     Returns:
     - CustomThread: The created thread.
     """
-    db_thread = crud.create_thread(db=db, user_id=user_id)
-    return db_thread
+    thread_metadata: ThreadMetadata = {
+        "gpt_id": gpt_id,
+        "user_id": user_id,
+        "last_updated": int(datetime.now().timestamp()),
+    }
+    thread = client.beta.threads.create(metadata=thread_metadata)
+    user_gpt_thread = schemas.UserGptThread(
+        user_id=user_id,
+        gpt_id=gpt_id,
+        thread_id=thread.id,
+    )
+    crud.create_thread(db=db, user_gpt_thread=user_gpt_thread)
+    return thread
 
 
 @router.get("/thread", response_model=List[CustomThread])
 def get_threads(
-    query: Optional[str] = None,
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
 ):
     """
-    Get all threads.
+    Get user threads.
 
     Headers:
     - auth (str): Bearer <USER_ID>
@@ -63,8 +83,12 @@ def get_threads(
     Returns:
     - List[CustomThread]: The list of threads.
     """
-    db_threads = crud.get_threads(db, query, user_id)
-    return db_threads
+    db_threads = crud.get_user_threads(db, user_id)
+    threads = []
+    for db_thread in db_threads:
+        thread = client.beta.threads.retrieve(db_thread.thread_id)
+        threads.append(thread)
+    return threads
 
 
 @router.get("/thread/{thread_id}/messages", response_model=List[ThreadMessage])

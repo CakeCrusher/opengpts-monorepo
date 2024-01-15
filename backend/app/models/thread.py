@@ -6,7 +6,7 @@ from openai.types.beta.assistant import (
 # from openai.types.beta.thread import Thread
 from openai.types.beta.threads import ThreadMessage as OpenaiThreadMessage
 from pydantic import BaseModel
-from typing import Union
+from typing import Optional, Union
 
 Tool = Union[ToolCodeInterpreter, ToolRetrieval]
 
@@ -18,7 +18,8 @@ class ThreadMessage(OpenaiThreadMessage):
 # Thread
 class ThreadMetadata(BaseModel):
     gpt_id: str = None
-    title: str = None
+    user_id: str = None
+    title: Optional[str] = None
     last_updated: int = None
 
 
@@ -29,7 +30,7 @@ class CustomThread(BaseModel):
 
 
 class UpsertCustomThread(BaseModel):
-    pass
+    gpt_id: str
 
 
 class CreateThreadMessage(BaseModel):

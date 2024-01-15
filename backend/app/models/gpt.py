@@ -20,6 +20,7 @@ class Model(str, Enum):
 
 class GptMetadata(BaseModel):
     user_name: str
+    # TODO: add GPT image
     visibility: Visibility
     is_staging: bool
     ref: Optional[str] = None
