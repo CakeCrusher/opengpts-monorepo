@@ -1,6 +1,6 @@
 import os
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from openai import OpenAI
 from utils.parsers import get_optional_user_id
 from db.database import SessionLocal
@@ -27,25 +27,22 @@ def get_db():
         db.close()
 
 
-@router.post("/users", response_model=schemas.User)
+@router.post("/users", response_model=schemas.SafeUser)
 def create_user(
+    response: Response,
     user: Optional[schemas.UserCreate] = None,
     user_id: str = Depends(get_optional_user_id),
     db: Session = Depends(get_db),
 ):
     """
     Create a new user.
-    (The user's ID will be tentatively used for authentication
-    by passing it to the headers of relevant endpoints.)
-
     Args:
     - user (Optional[schemas.UserCreate]): The new user's details.
-
     Headers:
     - auth (Optional[str]): Bearer <USER_ID>
-
     Returns:
-    - schemas.User: The created user.
+    - Response: A response with the 'auth' header set to 'Bearer {user_id}'
+      and the created user in the body.
     """
     if user_id:
         db_user = crud.get_user(db=db, user_id=user_id)
@@ -54,7 +51,13 @@ def create_user(
     else:
         db_user = crud.create_user(db=db, user=user)
 
-    return db_user
+    response.headers["auth"] = f"Bearer {db_user.id}"
+
+    return schemas.SafeUser(
+        email=db_user.email,
+        name=db_user.name,
+        profile_image=db_user.profile_image,
+    )
 
 
 @router.get("/users", response_model=List[schemas.User])
