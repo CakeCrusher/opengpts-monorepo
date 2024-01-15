@@ -91,28 +91,6 @@ def get_threads(
     return threads
 
 
-@router.get("/thread/{thread_id}/messages", response_model=List[ThreadMessage])
-def get_thread_messages(
-    thread_id: str,
-    user_id: str = Depends(get_user_id),
-    db: Session = Depends(get_db),
-):
-    """
-    Get all messages in a thread.
-
-    Args:
-    - thread_id (str): The ID of the thread.
-
-    Headers:
-    - auth (str): Bearer <USER_ID>
-
-    Returns:
-    - Gpt: The thread.
-    """
-    db_thread = crud.get_thread(db, thread_id)
-    return db_thread
-
-
 @router.post("/thread/{thread_id}/messages", response_model=ThreadMessage)
 def create_thread_message(
     thread_id: str,
@@ -133,4 +111,26 @@ def create_thread_message(
     - ThreadMessage: The created message.
     """
     db_thread = crud.create_thread_message(db, thread_id, request)
+    return db_thread
+
+
+@router.get("/thread/{thread_id}/messages", response_model=List[ThreadMessage])
+def get_thread_messages(
+    thread_id: str,
+    user_id: str = Depends(get_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Get all messages in a thread.
+
+    Args:
+    - thread_id (str): The ID of the thread.
+
+    Headers:
+    - auth (str): Bearer <USER_ID>
+
+    Returns:
+    - Gpt: The thread.
+    """
+    db_thread = crud.get_thread(db, thread_id)
     return db_thread

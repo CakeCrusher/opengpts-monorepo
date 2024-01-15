@@ -1,7 +1,8 @@
 import os
-from typing import List
-from fastapi import APIRouter, Depends
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException
 from openai import OpenAI
+from utils.parsers import get_optional_user_id
 from db.database import SessionLocal
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
@@ -27,19 +28,32 @@ def get_db():
 
 
 @router.post("/users", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: Optional[schemas.UserCreate] = None,
+    user_id: str = Depends(get_optional_user_id),
+    db: Session = Depends(get_db),
+):
     """
     Create a new user.
     (The user's ID will be tentatively used for authentication
     by passing it to the headers of relevant endpoints.)
 
     Args:
-    - user (schemas.UserCreate): The new user's details.
+    - user (Optional[schemas.UserCreate]): The new user's details.
+
+    Headers:
+    - auth (Optional[str]): Bearer <USER_ID>
 
     Returns:
     - schemas.User: The created user.
     """
-    db_user = crud.create_user(db=db, user=user)
+    if user_id:
+        db_user = crud.get_user(db=db, user_id=user_id)
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+    else:
+        db_user = crud.create_user(db=db, user=user)
+
     return db_user
 
 

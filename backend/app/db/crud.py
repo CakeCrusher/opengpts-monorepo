@@ -37,7 +37,12 @@ def get_user_threads(
 #     pass
 
 
-# GPT
+# USER
+def get_user(db: Session, user_id: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    return user
+
+
 def get_users(db: Session):
     all_users = db.query(models.User).all()
     return all_users
@@ -56,6 +61,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+# GPT
 def create_user_gpt(db: Session, user_gpt: schemas.UserGpt):
     db_user_gpt = models.User_gpt(
         user_id=user_gpt.user_id, gpt_id=user_gpt.gpt_id
