@@ -5,11 +5,11 @@
 </script>
 
 <div class="card">
-	<img class="card-image" src={gpt.imageUrl} alt="" />
+	<!-- <img class="card-image" src={gpt.imageUrl} alt="" /> -->
 	<div class="card-content">
 		<h3 class="name">{gpt.name}</h3>
 		<p class="description">{gpt.description}</p>
-		<p class="author">{gpt.author}</p>
+		<p class="author">{gpt.metadata.user_name}</p>
 	</div>
 </div>
 

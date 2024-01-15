@@ -4,9 +4,11 @@
 	import { user } from '$lib/stores/user';
 
 	function submit(e: Event) {
+		localStorage.clear();
 		const email = e.target?.email.value;
 		fetchApi('users', 'POST', { email }).then((response) => {
 			user.set(response);
+			localStorage.setItem('token', response.id);
 			goto('/');
 		});
 	}

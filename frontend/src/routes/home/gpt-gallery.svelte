@@ -1,6 +1,14 @@
 <script>
 	import { galleryGpts } from './stores';
 	import GptCard from './gpt-card.svelte';
+	import { onMount } from 'svelte';
+	import { fetchApi } from '$lib/fetcher';
+
+	onMount(() => {
+		fetchApi('gpt', 'GET').then((res) => {
+			galleryGpts.set(res);
+		});
+	});
 </script>
 
 <div class="gallery">
