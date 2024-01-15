@@ -2,6 +2,8 @@ export type Gpt = {
 	id: string;
 	name: string;
 	description: string;
-	imageUrl: string;
-	author: string;
+	metadata: {
+		user_name: string;
+	};
+	model: string;
 };

@@ -1,31 +1,45 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { fetchApi } from '$lib/fetcher';
 	import { user } from '$lib/stores/user';
 	import { onDestroy } from 'svelte';
 
-	let email: string | undefined;
+	let user_name: string | undefined;
 	let name: string;
 	let description: string;
 	let instructions: string;
 	let model: string;
-	let usesCodeInterpreter: boolean;
-	let usesWebBrowsing: boolean;
+	let usesCodeInterpreter: boolean = false;
+	let usesWebBrowsing: boolean = false;
 	let visibility: string;
 
-	const unsubscribe = user.subscribe((value) => (email = value?.email));
+	const unsubscribe = user.subscribe((value) => (user_name = value?.name));
 
 	onDestroy(unsubscribe);
 
 	function submit() {
+		let tools = [];
+
+		if (usesCodeInterpreter) {
+			tools.push({ type: 'code-interpreter' });
+		}
+		if (usesWebBrowsing) {
+			tools.push({ type: 'retrieval' });
+		}
+
 		fetchApi('gpt', 'POST', {
 			name,
 			description,
 			instructions,
 			model,
-			usesCodeInterpreter,
-			usesWebBrowsing,
-			visibility,
-			email
+			metadata: {
+				user_name,
+				visibility
+			},
+			tools,
+			file_ids: []
+		}).then(() => {
+			goto('/');
 		});
 	}
 </script>

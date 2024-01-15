@@ -1,12 +1,24 @@
 import { env } from '$env/dynamic/public';
 
-export function fetchApi(path: string, method: string, body: object) {
+export function fetchApi(path: string, method: string, body: object | null = null) {
+	const token = localStorage.getItem('token');
+	const details = token
+		? {
+				auth: `Bearer ${token}`
+			}
+		: {};
+	const bodyKwargs = body
+		? {
+				body: JSON.stringify(body)
+			}
+		: {};
+
 	return fetch(`${env.PUBLIC_URL}/${path}`, {
 		method,
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token')}`
+			...details
 		},
-		body: JSON.stringify(body)
+		...bodyKwargs
 	}).then((res) => res.json());
 }
