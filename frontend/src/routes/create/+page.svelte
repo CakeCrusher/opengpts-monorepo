@@ -1,24 +1,24 @@
 <h1>Create a GPT</h1>
 <form action="">
 	<div>
-		<label for="email">Your Email</label>
+		<label class="label--block" for="email">Your Email</label>
 		<input id="email" type="text" placeholder="Email" />
 	</div>
 	<h2>GPT Details</h2>
-	<div>
-		<label for="name">Name</label>
+	<div class="input--mb">
+		<label class="label--block" for="name">Name</label>
 		<input id="name" type="text" placeholder="Name" />
 	</div>
-	<div>
-		<label for="description">Description</label>
-		<input id="description" type="text" placeholder="Description" />
+	<div class="input--mb">
+		<label class="label--block" for="description">Description</label>
+		<textarea id="description" cols="30" rows="10"></textarea>
+	</div>
+	<div class="input--mb">
+		<label class="label--block" for="instructions">Instructions</label>
+		<textarea id="instructions" cols="30" rows="10"></textarea>
 	</div>
 	<div>
-		<label for="instructions">Instructions</label>
-		<input id="instructions" type="text" placeholder="Instructions" />
-	</div>
-	<div>
-		<label for="model">Model</label>
+		<label class="label--block" for="model">Model</label>
 		<select id="model">
 			<option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
 		</select>
@@ -29,13 +29,13 @@
 			<label for="code-interpreter">Code Interpreter</label>
 			<input id="code-interpreter" type="checkbox" />
 		</div>
-		<div>
+		<div class="input--mb">
 			<label for="retrieval">Web Browsing</label>
 			<input id="retrieval" type="checkbox" />
 		</div>
 		<div>
-			<label for="function-calling">Function Calling</label>
-			<button>New Function</button>
+			<label class="label--block" for="function-calling">Actions</label>
+			<button>New Action</button>
 		</div>
 	</div>
 	<div>
@@ -54,3 +54,24 @@
 		</select>
 	</div>
 </form>
+
+<style>
+	.label--block {
+		display: block;
+		padding-bottom: 0.5rem;
+	}
+
+	.input--mb {
+		margin-bottom: 1rem;
+	}
+
+	input[type='text'],
+	textarea {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 0.5rem;
+		border-radius: 0.5rem;
+		border: 1px solid #ccc;
+		font-size: 1rem;
+	}
+</style>
