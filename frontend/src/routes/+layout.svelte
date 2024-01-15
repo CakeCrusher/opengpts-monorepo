@@ -1,4 +1,5 @@
 <script>
+	import Navbar from '$lib/components/navbar.svelte';
 	import './global.css';
 </script>
 
@@ -13,4 +14,5 @@
 	<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </svelte:head>
 
+<Navbar />
 <slot />
