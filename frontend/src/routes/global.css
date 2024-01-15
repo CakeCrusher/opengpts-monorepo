@@ -1,3 +1,37 @@
 * {
     font-family: 'Mulish', sans-serif;
 }
+
+input[type='text'],
+input[type='email'],
+textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.input--mb {
+    margin-bottom: 1rem;
+}
+
+.label--block {
+    display: block;
+    padding-bottom: 0.25rem;
+}
+
+button, input[type="submit"], select {
+    cursor: pointer;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #ddd;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #ccc;
+}

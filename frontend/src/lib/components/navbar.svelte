@@ -1,7 +1,24 @@
+<script lang="ts">
+	import { user } from '$lib/stores/user';
+	import { onDestroy } from 'svelte';
+
+	let isLoggedIn = false;
+
+	const unsubscribe = user.subscribe((value) => (isLoggedIn = value !== null));
+
+	onDestroy(unsubscribe);
+</script>
+
 <div class="links">
-	<div class="left"></div>
+	<div class="left">
+		<a class="link" href="/">Home</a>
+	</div>
 	<div class="right">
-		<a class="link" href="/create">New GPT</a>
+		{#if isLoggedIn}
+			<a class="link" href="/create">New GPT</a>
+		{:else}
+			<a class="link" href="/login">Register/Login</a>
+		{/if}
 	</div>
 </div>
 
