@@ -27,6 +27,7 @@ class UserGptThread(BaseModel):
 
 
 class SafeUser(BaseModel):
+    id: str  # TODO: remove this
     email: str
     name: Optional[str] = None
     profile_image: Optional[str] = None

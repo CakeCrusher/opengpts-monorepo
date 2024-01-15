@@ -54,6 +54,7 @@ def create_user(
     response.headers["auth"] = f"Bearer {db_user.id}"
 
     return schemas.SafeUser(
+        id=db_user.id,
         email=db_user.email,
         name=db_user.name,
         profile_image=db_user.profile_image,
