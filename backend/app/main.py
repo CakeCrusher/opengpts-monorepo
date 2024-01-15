@@ -5,8 +5,8 @@ from db import models
 
 app = FastAPI()
 
-# TODO: Remove this in production
-models.Base.metadata.drop_all(bind=engine)
+# # TODO: Remove this in production
+# models.Base.metadata.drop_all(bind=engine)
 
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
