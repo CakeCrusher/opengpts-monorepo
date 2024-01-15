@@ -2,7 +2,7 @@
 <form action="">
 	<div>
 		<label class="label--block" for="email">Your Email</label>
-		<input id="email" type="text" placeholder="Email" />
+		<input id="email" type="email" placeholder="Email" />
 	</div>
 	<h2>GPT Details</h2>
 	<div class="input--mb">
@@ -11,11 +11,11 @@
 	</div>
 	<div class="input--mb">
 		<label class="label--block" for="description">Description</label>
-		<textarea id="description" cols="30" rows="10"></textarea>
+		<textarea id="description" cols="30" rows="10" placeholder="Description"></textarea>
 	</div>
 	<div class="input--mb">
 		<label class="label--block" for="instructions">Instructions</label>
-		<textarea id="instructions" cols="30" rows="10"></textarea>
+		<textarea id="instructions" cols="30" rows="10" placeholder="Instructions"></textarea>
 	</div>
 	<div>
 		<label class="label--block" for="model">Model</label>
@@ -26,12 +26,12 @@
 	<div>
 		<h3>Tools</h3>
 		<div>
-			<label for="code-interpreter">Code Interpreter</label>
 			<input id="code-interpreter" type="checkbox" />
+			<label for="code-interpreter">Code Interpreter</label>
 		</div>
 		<div class="input--mb">
-			<label for="retrieval">Web Browsing</label>
 			<input id="retrieval" type="checkbox" />
+			<label for="retrieval">Web Browsing</label>
 		</div>
 		<div>
 			<label class="label--block" for="function-calling">Actions</label>
@@ -41,7 +41,7 @@
 	<div>
 		<h3>Knowledge</h3>
 		<div>
-			<label for="files">Select files:</label>
+			<label for="files">Upload files:</label>
 			<input id="files" type="file" multiple />
 		</div>
 	</div>
@@ -58,7 +58,7 @@
 <style>
 	.label--block {
 		display: block;
-		padding-bottom: 0.5rem;
+		padding-bottom: 0.25rem;
 	}
 
 	.input--mb {
@@ -66,6 +66,7 @@
 	}
 
 	input[type='text'],
+	input[type='email'],
 	textarea {
 		box-sizing: border-box;
 		width: 100%;
@@ -73,5 +74,13 @@
 		border-radius: 0.5rem;
 		border: 1px solid #ccc;
 		font-size: 1rem;
+	}
+
+	h2 {
+		margin-bottom: 1rem;
+	}
+
+	h3 {
+		margin-bottom: 0.5rem;
 	}
 </style>
