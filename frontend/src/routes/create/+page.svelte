@@ -56,26 +56,6 @@
 </form>
 
 <style>
-	.label--block {
-		display: block;
-		padding-bottom: 0.25rem;
-	}
-
-	.input--mb {
-		margin-bottom: 1rem;
-	}
-
-	input[type='text'],
-	input[type='email'],
-	textarea {
-		box-sizing: border-box;
-		width: 100%;
-		padding: 0.5rem;
-		border-radius: 0.5rem;
-		border: 1px solid #ccc;
-		font-size: 1rem;
-	}
-
 	h2 {
 		margin-bottom: 1rem;
 	}
