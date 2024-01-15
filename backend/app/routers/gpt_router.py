@@ -1,10 +1,13 @@
 import os
 from typing import List, Optional
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from openai import OpenAI
 from pydantic import BaseModel
+from db.database import SessionLocal
 from models.gpt import Gpt
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from db import crud, schemas
 
 load_dotenv()
 
@@ -21,8 +24,17 @@ class GptRequest(BaseModel):
 router = APIRouter()
 
 
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 @router.post("/gpt", response_model=Gpt)
-def create_gpt(request: GptRequest):
+def create_gpt(request: GptRequest, db: Session = Depends(get_db)):
     """
     Create a GPT instance and a corresponding staging GPT instance.
 
@@ -51,6 +63,13 @@ def create_gpt(request: GptRequest):
     }
     del staging_gpt_dict["id"]
     staging_gpt = client.beta.assistants.create(**staging_gpt_dict)
+
+    crud.create_user_gpt(
+        db=db,
+        user_gpt=schemas.UserGpt(
+            user_id=request.user_id, gpt_id=staging_gpt.id
+        ),
+    )
 
     return staging_gpt
 

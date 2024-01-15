@@ -1,11 +1,12 @@
-# import os
-# from openai import OpenAI
 from fastapi import FastAPI
-from routers.gpt_router import (
-    router as gpt_router,
-)
-
+from routers import gpt_router, user_router
+from db.database import engine
+from db import models
 
 app = FastAPI()
 
-app.include_router(gpt_router)
+# Create the database tables
+models.Base.metadata.create_all(bind=engine)
+
+app.include_router(gpt_router.router)
+app.include_router(user_router.router)
