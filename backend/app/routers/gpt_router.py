@@ -63,23 +63,26 @@ def create_gpt(
     }
     staging_gpt = client.beta.assistants.create(**staging_gpt_dict)
 
-    staging_user_gpt = crud.create_user_gpt(
+    crud.create_user_gpt(
         db=db,
         user_gpt=schemas.UserGpt(user_id=user_id, gpt_id=staging_gpt.id),
     )
-
-    print("staging_user_gpt", staging_user_gpt)
 
     return staging_gpt
 
 
 @router.get("/gpt", response_model=List[Gpt])
-def list_gpts(query: Optional[str] = None):
+def list_gpts(
+    query: Optional[str] = None,
+    user_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
     """
     Get a list of all GPT assistants.
 
     Args:
     - query (str): The query to filter by.
+    - user_id (str): The user ID to filter by.
 
     Returns:
     - List[Gpt]: The list of GPTs.
@@ -92,13 +95,19 @@ def list_gpts(query: Optional[str] = None):
     #     client.beta.assistants.delete(assistant.id)
     all_gpts = [Gpt(**dict(assistant)) for assistant in assistants.data]
     if query:
-        filtered_gpts = [
+        all_gpts = [
             gpt
             for gpt in all_gpts
             if (gpt.description and query in gpt.description)
         ]
-        return filtered_gpts
-    return [Gpt(**dict(assistant)) for assistant in assistants.data]
+    if user_id:
+        all_user_gpts = crud.get_user_gpts(db=db, user_id=user_id)
+        all_gpts = [
+            gpt
+            for gpt in all_gpts
+            if any(user_gpt.gpt_id == gpt.id for user_gpt in all_user_gpts)
+        ]
+    return all_gpts
 
 
 @router.patch("/gpt/{assistant_id}/update", response_model=Gpt)
@@ -170,8 +179,6 @@ def publish_gpt(
         )
 
     request_gpt = client.beta.assistants.retrieve(assistant_id)
-
-    print("REQUEST GPT", dict(request_gpt))
 
     # Update the staging GPT Assistant
     updated_staging_gpt_dict = dict(request)

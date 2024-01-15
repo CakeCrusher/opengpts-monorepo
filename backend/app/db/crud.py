@@ -31,13 +31,13 @@ def create_user_gpt(db: Session, user_gpt: models.User_gpt):
     return db_user_gpt
 
 
-# def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
-#     user_gpts = (
-#         db.query(models.User_gpt)
-#         .filter(models.User_gpt.user_id == user_id)
-#         .all()
-#     )
-#     return user_gpts
+def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
+    user_gpts = (
+        db.query(models.User_gpt)
+        .filter(models.User_gpt.user_id == user_id)
+        .all()
+    )
+    return user_gpts
 
 
 def get_user_gpt(db: Session, user_id: str, gpt_id: str) -> models.User_gpt:
