@@ -30,8 +30,8 @@ def get_db():
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     Create a new user.
-    (The user's ID will be tentatively used for authentication"""
-    +"""by passing it to the headers of relevant endpoints.)
+    (The user's ID will be tentatively used for authentication
+    by passing it to the headers of relevant endpoints.)
 
     Args:
     - user (schemas.UserCreate): The new user's details.

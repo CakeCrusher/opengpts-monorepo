@@ -8,6 +8,8 @@ class User(Base):
 
     id = Column(String, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    name = Column(String)
+    profile_image = Column(String)
 
     user_gpts = relationship("User_gpt", back_populates="owner")
 

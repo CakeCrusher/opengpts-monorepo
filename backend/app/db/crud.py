@@ -13,7 +13,12 @@ def get_users(db: Session):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(id=str(uuid.uuid4()), email=user.email)
+    db_user = models.User(
+        id=str(uuid.uuid4()),
+        email=user.email,
+        name=user.name,
+        profile_image=user.profile_image,
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
