@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import gpt_router, user_router
+from routers import gpt_router, user_router, thread_router
 from db.database import engine
 from db import models
 
@@ -13,3 +13,4 @@ models.Base.metadata.create_all(bind=engine)
 
 app.include_router(gpt_router.router)
 app.include_router(user_router.router)
+app.include_router(thread_router.router)

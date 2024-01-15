@@ -1,8 +1,29 @@
+from typing import List
 from sqlalchemy.orm import Session
+
+from models.thread import CustomThread
 from . import models, schemas
 import uuid
 
 
+# THREAD
+def create_thread(db: Session, user_id: str) -> CustomThread:
+    pass
+    # TODO: THREAD create a thread
+
+
+def get_threads(db: Session, query: str, user_id: str) -> List[CustomThread]:
+    pass
+    # TODO: THREAD get all threads
+
+
+# def create_thread_message(
+#     db: Session, thread_message: schemas.ThreadMessageCreate
+# ) -> models.ThreadMessage:
+#     pass
+
+
+# GPT
 def get_users(db: Session):
     all_users = db.query(models.User).all()
     return all_users

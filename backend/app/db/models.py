@@ -28,3 +28,6 @@ class User_gpt(Base):
 
     def __str__(self):
         return f"User_gpt(user_id={self.user_id}, gpt_id={self.gpt_id})"
+
+
+# TODO: THREAD create User_gpt_thread
