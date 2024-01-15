@@ -1,6 +1,6 @@
 import os
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from openai import OpenAI
 from utils.parsers import get_user_id
 from db.database import SessionLocal
@@ -14,6 +14,8 @@ from models.thread import (
     ThreadMetadata,
 )
 from datetime import datetime
+import time
+from openai.pagination import SyncCursorPage
 
 load_dotenv()
 
@@ -91,8 +93,12 @@ def get_threads(
     return threads
 
 
-@router.post("/thread/{thread_id}/messages", response_model=ThreadMessage)
+@router.post(
+    "/gpt/{gpt_id}/thread/{thread_id}/messages",
+    response_model=SyncCursorPage[ThreadMessage],
+)
 def create_thread_message(
+    gpt_id: str,
     thread_id: str,
     request: CreateThreadMessage,
     user_id: str = Depends(get_user_id),
@@ -108,14 +114,56 @@ def create_thread_message(
     - auth (str): Bearer <USER_ID>
 
     Returns:
-    - ThreadMessage: The created message.
+    - SyncCursorPage[ThreadMessage]: The message history including the
+      assistant response.
     """
-    db_thread = crud.create_thread_message(db, thread_id, request)
-    return db_thread
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=request.content,
+    )
+    run = client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=gpt_id,
+    )
+
+    max_wait_iterations = 20  # (max_wait_iterations / 2) = seconds to wait
+    i = 0
+    while i < max_wait_iterations:
+        i += 1
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id,
+        )
+
+        if run.status == "completed":
+            break
+        elif not (run.status == "in_progress" or run.status == "queued"):
+            raise HTTPException(
+                status_code=500,
+                detail="GPT run failed. With status: " + run.status,
+            )
+
+        time.sleep(0.5)
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="GPT run failed. With status: " + run.status,
+        )
+
+    messages = client.beta.threads.messages.list(
+        thread_id=thread_id,
+    )
+
+    return messages
 
 
-@router.get("/thread/{thread_id}/messages", response_model=List[ThreadMessage])
+@router.get(
+    "/gpt/{gpt_id}/thread/{thread_id}/messages",
+    response_model=SyncCursorPage[ThreadMessage],
+)
 def get_thread_messages(
+    gpt_id: str,
     thread_id: str,
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
@@ -130,7 +178,15 @@ def get_thread_messages(
     - auth (str): Bearer <USER_ID>
 
     Returns:
-    - Gpt: The thread.
+    - SyncCursorPage[ThreadMessage]: All of the messages in a the thread.
     """
-    db_thread = crud.get_thread(db, thread_id)
-    return db_thread
+    if not crud.get_user_gpt_thread(db, user_id, gpt_id, thread_id):
+        raise HTTPException(
+            status_code=404,
+            detail="User does not have access to this thread.",
+        )
+
+    messages = client.beta.threads.messages.list(
+        thread_id=thread_id,
+    )
+    return messages

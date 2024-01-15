@@ -1,3 +1,4 @@
+from enum import Enum
 from openai.types.beta.assistant import (
     ToolCodeInterpreter,
     ToolRetrieval,
@@ -13,6 +14,17 @@ Tool = Union[ToolCodeInterpreter, ToolRetrieval]
 
 class ThreadMessage(OpenaiThreadMessage):
     pass
+
+
+class RunStatus(Enum):
+    QUEUED = "queued"
+    IN_PROGRESS = "in_progress"
+    REQUIRES_ACTION = "requires_action"
+    CANCELLING = "cancelling"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+    COMPLETED = "completed"
+    EXPIRED = "expired"
 
 
 # Thread

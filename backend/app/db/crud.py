@@ -31,6 +31,19 @@ def get_user_threads(
     return user_gpt_threads
 
 
+def get_user_gpt_thread(
+    db: Session, user_id: str, gpt_id: str, thread_id: str
+) -> models.User_gpt_thread:
+    user_gpt_thread = (
+        db.query(models.User_gpt_thread)
+        .filter(models.User_gpt_thread.user_id == user_id)
+        .filter(models.User_gpt_thread.gpt_id == gpt_id)
+        .filter(models.User_gpt_thread.thread_id == thread_id)
+        .first()
+    )
+    return user_gpt_thread
+
+
 # def create_thread_message(
 #     db: Session, thread_message: schemas.ThreadMessageCreate
 # ) -> models.ThreadMessage:
