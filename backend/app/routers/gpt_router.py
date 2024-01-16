@@ -1,6 +1,6 @@
 import os
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from openai import OpenAI
 from utils.parsers import get_user_id
 from db.database import SessionLocal
@@ -8,6 +8,7 @@ from models.gpt import UpsertGpt, Gpt
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from db import crud, schemas
+from openai.types import FileObject
 
 load_dotenv()
 
@@ -211,3 +212,13 @@ def publish_gpt(
     # ][0]
 
     return (updated_staging_gpt, updated_main_gpt)
+
+
+@router.post("/gpt/uploadfile", response_model=FileObject)
+async def create_upload_file(file: UploadFile):
+    content = await file.read()
+    assistant_file = client.files.create(
+        file=(file.filename, content),
+        purpose='assistants',
+    )
+    return assistant_file
