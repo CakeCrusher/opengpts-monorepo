@@ -23,7 +23,6 @@ from models.thread import (
 )
 from datetime import datetime
 import time
-from openai.pagination import SyncCursorPage
 from utils.api import get_run_steps, openai_client
 from openai.types.beta.threads.runs import RunStep
 
@@ -100,7 +99,7 @@ def get_threads(
 
 @router.post(
     "/gpt/{gpt_id}/thread/{thread_id}/messages",
-    response_model=SyncCursorPage[ThreadMessage],
+    response_model=List[ThreadMessage],
 )
 def create_thread_message(
     gpt_id: str,
@@ -122,11 +121,12 @@ def create_thread_message(
     - SyncCursorPage[ThreadMessage]: The message history including the
       assistant response.
     """
-    openai_client.beta.threads.messages.create(
+    user_message = openai_client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
         content=request.content,
     )
+
     run = openai_client.beta.threads.runs.create(
         thread_id=thread_id,
         assistant_id=gpt_id,
@@ -155,17 +155,23 @@ def create_thread_message(
             status_code=500,
             detail="GPT run failed. With status: " + run.status,
         )
+    print("RUN: ", run)
 
     messages = openai_client.beta.threads.messages.list(
         thread_id=thread_id,
     )
+    messages_list = []
+    for message in messages:
+        messages_list.append(message)
+        if message.id == user_message.id:
+            break
 
-    return messages
+    return messages_list
 
 
 @router.get(
     "/gpt/{gpt_id}/thread/{thread_id}/messages",
-    response_model=SyncCursorPage[ThreadMessage],
+    response_model=List[ThreadMessage],
 )
 def get_thread_messages(
     gpt_id: str,
@@ -194,7 +200,8 @@ def get_thread_messages(
     messages = openai_client.beta.threads.messages.list(
         thread_id=thread_id,
     )
-    return messages
+    messages_list = [message for message in messages]
+    return messages_list
 
 
 # TODO: takes a while to retrieve, transform this to a stream
