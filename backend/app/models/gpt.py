@@ -34,7 +34,8 @@ class UpsertGptMetadata(BaseModel):
 class Gpt(BaseModel):
     id: Optional[str]
     description: Optional[str]
-    file_ids: list
+    file_ids: list[str]
+    # TODO: need to fetch filenames
     instructions: Optional[str]
     metadata: GptMetadata
     name: str
