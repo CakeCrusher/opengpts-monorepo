@@ -1,10 +1,7 @@
-import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from openai import OpenAI
 from utils.parsers import get_user_id
 from db.database import SessionLocal
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from db import crud, schemas
 from models.thread import (
@@ -16,12 +13,8 @@ from models.thread import (
 from datetime import datetime
 import time
 from openai.pagination import SyncCursorPage
+from utils.api import openai_client
 
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
 
 # th = client.beta.threads.retrieve("th-1Y2J5Z5QX1QJ5")
 # msgs = client.beta.threads.messages.list(th.id)
@@ -61,7 +54,7 @@ def create_thread(
         "user_id": user_id,
         "last_updated": int(datetime.now().timestamp()),
     }
-    thread = client.beta.threads.create(metadata=thread_metadata)
+    thread = openai_client.beta.threads.create(metadata=thread_metadata)
     user_gpt_thread = schemas.UserGptThread(
         user_id=user_id,
         gpt_id=gpt_id,
@@ -88,7 +81,7 @@ def get_threads(
     db_threads = crud.get_user_threads(db, user_id)
     threads = []
     for db_thread in db_threads:
-        thread = client.beta.threads.retrieve(db_thread.thread_id)
+        thread = openai_client.beta.threads.retrieve(db_thread.thread_id)
         threads.append(thread)
     return threads
 
@@ -117,12 +110,12 @@ def create_thread_message(
     - SyncCursorPage[ThreadMessage]: The message history including the
       assistant response.
     """
-    client.beta.threads.messages.create(
+    openai_client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
         content=request.content,
     )
-    run = client.beta.threads.runs.create(
+    run = openai_client.beta.threads.runs.create(
         thread_id=thread_id,
         assistant_id=gpt_id,
     )
@@ -131,7 +124,7 @@ def create_thread_message(
     i = 0
     while i < max_wait_iterations:
         i += 1
-        run = client.beta.threads.runs.retrieve(
+        run = openai_client.beta.threads.runs.retrieve(
             thread_id=thread_id,
             run_id=run.id,
         )
@@ -151,7 +144,7 @@ def create_thread_message(
             detail="GPT run failed. With status: " + run.status,
         )
 
-    messages = client.beta.threads.messages.list(
+    messages = openai_client.beta.threads.messages.list(
         thread_id=thread_id,
     )
 
@@ -186,7 +179,7 @@ def get_thread_messages(
             detail="User does not have access to this thread.",
         )
 
-    messages = client.beta.threads.messages.list(
+    messages = openai_client.beta.threads.messages.list(
         thread_id=thread_id,
     )
     return messages

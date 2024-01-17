@@ -1,19 +1,9 @@
-import os
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
-from openai import OpenAI
 from utils.parsers import get_optional_user_id
 from db.database import SessionLocal
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from db import crud, schemas
-
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
 
 router = APIRouter()
 
