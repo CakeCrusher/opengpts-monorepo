@@ -1,20 +1,14 @@
-import os
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from openai import OpenAI
+
 from utils.parsers import get_user_id
 from db.database import SessionLocal
 from models.gpt import UpsertGpt, Gpt
-from dotenv import load_dotenv
+
 from sqlalchemy.orm import Session
 from db import crud, schemas
 from openai.types import FileObject
-
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
+from utils.api import openai_client
 
 router = APIRouter()
 
@@ -53,7 +47,7 @@ def create_gpt(
         **dict(request.metadata),
         "is_staging": False,
     }
-    main_gpt = client.beta.assistants.create(**main_gpt_dict)
+    main_gpt = openai_client.beta.assistants.create(**main_gpt_dict)
 
     # Create Staging GPT Instance
     staging_gpt_dict = dict(request)
@@ -62,7 +56,7 @@ def create_gpt(
         "is_staging": True,
         "ref": main_gpt.id,
     }
-    staging_gpt = client.beta.assistants.create(**staging_gpt_dict)
+    staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
 
     crud.create_user_gpt(
         db=db,
@@ -88,7 +82,7 @@ def list_gpts(
     Returns:
     - List[Gpt]: The list of GPTs.
     """
-    assistants = client.beta.assistants.list()
+    assistants = openai_client.beta.assistants.list()
     # # USE FOR METADATA ERRORS: Useful for for whenever there are changes to
     # # Metadata structure
     # for assistant in assistants.data:
@@ -143,7 +137,7 @@ def update_gpt(
     # Update the staging GPT Assistant
     updated_gpt_dict = dict(request)
     updated_gpt_dict["metadata"] = dict(request.metadata)
-    updated_gpt = client.beta.assistants.update(
+    updated_gpt = openai_client.beta.assistants.update(
         assistant_id, **updated_gpt_dict
     )
 
@@ -179,7 +173,7 @@ def publish_gpt(
             detail="User does not have access to this GPT instance.",
         )
 
-    request_gpt = client.beta.assistants.retrieve(assistant_id)
+    request_gpt = openai_client.beta.assistants.retrieve(assistant_id)
 
     # Update the staging GPT Assistant
     updated_staging_gpt_dict = dict(request)
@@ -189,7 +183,7 @@ def publish_gpt(
         "ref": request_gpt.metadata["ref"],
     }
 
-    updated_staging_gpt = client.beta.assistants.update(
+    updated_staging_gpt = openai_client.beta.assistants.update(
         assistant_id, **updated_staging_gpt_dict
     )
 
@@ -198,7 +192,7 @@ def publish_gpt(
     updated_main_gpt_dict["metadata"]["is_staging"] = False
     del updated_main_gpt_dict["metadata"]["ref"]
 
-    updated_main_gpt = client.beta.assistants.update(
+    updated_main_gpt = openai_client.beta.assistants.update(
         request_gpt.metadata["ref"], **updated_main_gpt_dict
     )
 
@@ -217,7 +211,7 @@ def publish_gpt(
 @router.post("/gpt/uploadfile", response_model=FileObject)
 async def create_upload_file(file: UploadFile):
     content = await file.read()
-    assistant_file = client.files.create(
+    assistant_file = openai_client.files.create(
         file=(file.filename, content),
         purpose='assistants',
     )
