@@ -1,10 +1,14 @@
 """
 TESTING
-asst_UOmnQLhM5Yf1jiZx56J7bleW
-thread_6XCcv97SvXjmSqPXXdmXz1mf
-6e9b3cb6-5ba5-4457-abcb-e0d08546c6ae
+asst_H8r6928abxcTsq3XP5qRXCBD
+thread_KFd3jsCK5LjSMVQfkrBQnQss
+bearer 99d834cd-b052-4d56-9914-818aacca8533
+{
+  "content": "Please solve [1 2 3;4 5 6] x [7 8;9 10;11 12]"
+}
 """
 
+import json
 from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException
 from utils.parsers import get_user_id
@@ -12,7 +16,7 @@ from db.database import SessionLocal
 from sqlalchemy.orm import Session
 from db import crud, schemas
 from models.thread import (
-    CreateThreadMessageResponse,
+    RunStepsResponse,
     CustomThread,
     CreateThreadMessage,
     ThreadMessage,
@@ -21,7 +25,7 @@ from models.thread import (
 from datetime import datetime
 import time
 from openai.pagination import SyncCursorPage
-from utils.api import openai_client
+from utils.api import get_run_steps_and_messages, openai_client
 
 
 # th = client.beta.threads.retrieve("th-1Y2J5Z5QX1QJ5")
@@ -193,9 +197,67 @@ def get_thread_messages(
     return messages
 
 
+# TODO: takes a while to retrieve, transform this to a stream
+@router.get(
+    "/gpt/{gpt_id}/thread/{thread_id}/run",
+    response_model=RunStepsResponse,
+)
+def get_thread_runs(
+    gpt_id: str,
+    thread_id: str,
+    user_id: str = Depends(get_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Get all run steps in a thread.
+
+    Args:
+    - gp_id (str): The ID of the GPT.
+    - thread_id (str): The ID of the thread.
+
+    Headers:
+    - auth (str): Bearer <USER_ID>
+
+    Returns:
+    - RunStepsResponse: The run steps in the thread and a hash map of
+      messages.
+    """
+    runs = openai_client.beta.threads.runs.list(
+        thread_id=thread_id,
+    )
+    print("RUNS: ", json.dumps(runs.model_dump(), indent=2))
+    messages: Dict[str, ThreadMessage] = {}
+    aggregated_run_steps = []
+
+    for run in runs:
+        run_steps_response = get_run_steps_and_messages(
+            openai_client, thread_id, run.id
+        )
+
+        aggregated_run_steps.extend(run_steps_response.run_steps)
+        messages.update(run_steps_response.messages)
+
+    return RunStepsResponse(
+        messages=messages,
+        run_steps=aggregated_run_steps,
+    )
+
+
+def check_step_status(step):
+    if not (
+        step.status == "in_progress"
+        or step.status == "queued"
+        or step.status == "completed"
+    ):
+        raise HTTPException(
+            status_code=500,
+            detail="GPT run failed. With status: " + step.status,
+        )
+
+
 @router.post(
     "/gpt/{gpt_id}/thread/{thread_id}/run",
-    response_model=CreateThreadMessageResponse,
+    response_model=RunStepsResponse,
 )
 def create_thread_run(
     gpt_id: str,
@@ -214,8 +276,8 @@ def create_thread_run(
     - auth (str): Bearer <USER_ID>
 
     Returns:
-    - SyncCursorPage[ThreadMessage]: The message history including the
-      assistant response.
+    - RunStepsResponse: The run steps in the run and a hash map of
+      messages.
     """
     openai_client.beta.threads.messages.create(
         thread_id=thread_id,
@@ -231,49 +293,16 @@ def create_thread_run(
     i = 0
     while i < max_wait_iterations:
         i += 1
-        run = openai_client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run.id,
+
+        run_steps_response = get_run_steps_and_messages(
+            openai_client, thread_id, run.id, check_step_status
         )
 
-        run_steps = openai_client.beta.threads.runs.steps.list(
-            thread_id=thread_id,
-            run_id=run.id,
-        )
-        messages: Dict[str, ThreadMessage] = {}
-
-        # Iterate over the data in run_steps
-        for step in run_steps:
-            # Check if the step type is 'message_creation'
-            if not (
-                step.status == "in_progress"
-                or step.status == "queued"
-                or step.status == "completed"
-            ):
-                raise HTTPException(
-                    status_code=500,
-                    detail="GPT run failed. With status: " + run.status,
-                )
-            if step.type == 'message_creation':
-                # Retrieve the message
-                message = openai_client.beta.threads.messages.retrieve(
-                    thread_id=step.thread_id,
-                    message_id=step.step_details.message_creation.message_id,
-                )
-                # Map the message to the message_id in the hash map
-                messages[
-                    step.step_details.message_creation.message_id
-                ] = message.model_dump()
-                # Pydandtic does not recognize the ThreadMessage object,
-                # so it must be serialized
-
-        json_run_steps = run_steps.model_dump()
-        if len(json_run_steps["data"]) and any(
-            [
-                step["type"] == "message_creation"
-                and step["status"] == "completed"
-                for step in json_run_steps["data"]
-            ]
+        json_run_steps = [
+            step.model_dump() for step in run_steps_response.run_steps
+        ]
+        if len(json_run_steps) and all(
+            [step["status"] == "completed" for step in json_run_steps]
         ):
             break
 
@@ -281,10 +310,7 @@ def create_thread_run(
     else:
         raise HTTPException(
             status_code=500,
-            detail="GPT run failed. With status: " + run.status,
+            detail="GPT run timed out.",
         )
 
-    return CreateThreadMessageResponse(
-        messages=messages,
-        run_steps=run_steps,
-    )
+    return run_steps_response

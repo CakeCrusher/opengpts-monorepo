@@ -6,10 +6,9 @@ from openai.types.beta.assistant import (
 
 # from openai.types.beta.thread import Thread
 from openai.types.beta.threads import ThreadMessage as OpenaiThreadMessage
-from openai.pagination import SyncCursorPage
 from openai.types.beta.threads.runs import RunStep
 from pydantic import BaseModel
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 Tool = Union[ToolCodeInterpreter, ToolRetrieval]
 
@@ -51,6 +50,6 @@ class CreateThreadMessage(BaseModel):
     content: str
 
 
-class CreateThreadMessageResponse(BaseModel):
+class RunStepsResponse(BaseModel):
     messages: Dict[str, ThreadMessage]
-    run_steps: SyncCursorPage[RunStep]
+    run_steps: List[RunStep]
