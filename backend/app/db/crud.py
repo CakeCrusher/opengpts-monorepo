@@ -1,8 +1,9 @@
 from typing import List
 from sqlalchemy.orm import Session
+from db.models import User
 
 from . import models, schemas
-import uuid
+import uuid, bcrypt
 
 
 # THREAD
@@ -55,18 +56,27 @@ def get_user(db: Session, user_id: str):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     return user
 
+def get_user_by_username(db: Session, username: str):
+    return db.query(User).filter(User.username == username).first()
+    
+def verify_passsword(plain_password: str, hashed_password: str):
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
 def get_users(db: Session):
     all_users = db.query(models.User).all()
     return all_users
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.UserCreate, password: str) -> models.User:
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     db_user = models.User(
         id=str(uuid.uuid4()),
+        username=user.username,
         email=user.email,
+        hashed_password=hashed_password,
         name=user.name,
         profile_image=user.profile_image,
+        # Add other fields as necessary
     )
     db.add(db_user)
     db.commit()

@@ -10,6 +10,11 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     name = Column(String)
     profile_image = Column(String)
+    hashed_password = Column(String)
+    is_active = Column(String)
+
+
+    # relationships
 
     user_gpts = relationship("User_gpt", back_populates="owner")
     user_gpt_threads = relationship("User_gpt_thread", back_populates="owner")

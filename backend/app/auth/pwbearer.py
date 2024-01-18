@@ -2,9 +2,13 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from db.database import engine, SessionLocal, Base
-from db.schemas import UserBase
+from sqlalchemy.orm import Session
+from db.database import SessionLocal
+from db.schemas import UserBase, ExtendedUserBase
+from db.crud import get_user_by_username, verify_password  # You'll need to implement these
+from security import create_access_token, get_current_user  # You'll need to implement these
+import bcrypt
+import jwt
 
 db = SessionLocal()
 
@@ -72,19 +76,14 @@ async def get_current_active_user(
 # Authenticate  
 
 @app.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB(**user_dict)
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = get_user(fake_users_db, form_data.username)
+    if not user or not fake_hash_password(form_data.password) == user.hashed_password:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
-    return {"access_token": user.username, "token_type": "bearer"}
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/users/me")
-async def read_users_me(
-    current_user: Annotated[ExtendedUserBase, Depends(get_current_active_user)]
-):
+async def read_users_me(current_user: ExtendedUserBase = Depends(get_current_user)):
     return current_user
