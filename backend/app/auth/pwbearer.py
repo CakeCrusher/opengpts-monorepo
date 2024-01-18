@@ -14,7 +14,7 @@ db = SessionLocal()
 
 from typing import Optional
 from pydantic import BaseModel
-from db.schemas import UserBase
+from db.schemas import UserBase, UserInDB
 
 class ExtendedUserBase(UserBase):
     username: Optional[str] = None
