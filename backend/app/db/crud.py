@@ -7,9 +7,7 @@ import uuid, bcrypt
 
 
 # THREAD
-def create_thread(
-    db: Session, user_gpt_thread: schemas.UserGptThread
-) -> models.User_gpt_thread:
+
 def create_thread(
     db: Session, user_gpt_thread: schemas.UserGptThread
 ) -> models.User_gpt_thread:
@@ -47,20 +45,10 @@ def get_user_threads(
         List[models.User_gpt_thread]: A list of user GPT threads.
     """
 
-def get_user_threads(
-    db: Session, user_id: str
-) -> List[models.User_gpt_thread]:
-    user_gpt_threads = (
-        db.query(models.User_gpt_thread)
-        .filter(models.User_gpt_thread.user_id == user_id)
-        .all()
-    )
-    return user_gpt_threads
 
 
-def get_user_gpt_thread(
-    db: Session, user_id: str, gpt_id: str, thread_id: str
-) -> models.User_gpt_thread:
+
+
 def get_user_gpt_thread(
     db: Session, user_id: str, gpt_id: str, thread_id: str
 ) -> models.User_gpt_thread:
@@ -93,7 +81,7 @@ def get_user_gpt_thread(
 
 
 # USER
-def get_user(db: Session, user_id: str):
+
 def get_user(db: Session, user_id: str) -> models.User:
     """
     Retrieve a user by their ID.
@@ -119,10 +107,9 @@ def get_user_by_username(db: Session, username: str) -> models.User:
     Returns:
         models.User: The user object if found, otherwise None.
     """
-def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
+
     
-def verify_passsword(plain_password: str, hashed_password: str):
+
 def verify_passsword(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against a hashed password.
@@ -136,7 +123,7 @@ def verify_passsword(plain_password: str, hashed_password: str) -> bool:
     """
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
-def get_users(db: Session):
+
 def get_users(db: Session) -> List[models.User]:
     """
     Retrieve all users.
@@ -151,7 +138,7 @@ def get_users(db: Session) -> List[models.User]:
     return all_users
 
 
-def create_user(db: Session, user: schemas.UserCreate, password: str) -> models.User:
+
 def create_user(db: Session, user: schemas.UserCreate, password: str) -> models.User:
     """
     Create a new user with the given details and password.
@@ -181,7 +168,7 @@ def create_user(db: Session, user: schemas.UserCreate, password: str) -> models.
 
 
 # GPT
-def create_user_gpt(db: Session, user_gpt: schemas.UserGpt):
+
 def create_user_gpt(db: Session, user_gpt: schemas.UserGpt) -> models.User_gpt:
     """
     Create a new user GPT association.
@@ -212,8 +199,6 @@ def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
     Returns:
         list[models.User_gpt]: A list of user GPT objects.
     """
-
-def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
     user_gpts = (
         db.query(models.User_gpt)
         .filter(models.User_gpt.user_id == user_id)
@@ -222,7 +207,7 @@ def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
     return user_gpts
 
 
-def get_user_gpt(db: Session, user_id: str, gpt_id: str) -> models.User_gpt:
+
 def get_user_gpt(db: Session, user_id: str, gpt_id: str) -> models.User_gpt:
     """
     Retrieve a specific GPT association for a user.

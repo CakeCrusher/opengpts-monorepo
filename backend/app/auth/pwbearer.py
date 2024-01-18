@@ -1,89 +1,57 @@
-from typing import Annotated
-
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from db.database import SessionLocal
-from db.schemas import UserBase, ExtendedUserBase
-from db.crud import get_user_by_username, verify_password
-from .security import create_access_token, get_current_user
-import bcrypt
 import jwt
-
-db = SessionLocal()
-
-from typing import Optional
-from pydantic import BaseModel
-from db.schemas import UserBase
-
-class ExtendedUserBase(UserBase):
-    username: Optional[str] = None
-    hashed_password: Optional[str] = None
-    disabled: Optional[bool] = None
-    
-class UserInDB(ExtendedUserBase):
-    hashed_password: str
-
-fake_users_db = {
-   "johndoe": { ExtendedUserBase(username="chad" ,
-                                 email="john@doe.com", 
-                                 name="John Doe", 
-                                 profile_image=None,
-                                 hashed_password="fakehashedsecret",
-                                 disabled=False,)},
-   "alice": { ExtendedUserBase(username="alice" ,
-                               email="alice@alice.com", 
-                               name="Alice", 
-                               profile_image=None,
-                               hashed_password="fakehashedsecret",
-                               disabled=False,)},
-        
-}
+from jwt import PyJWTError
+from fastapi import FastAPI, Security
+from fastapi.security.api_key import APIKeyHeader
+from starlette.status import HTTP_403_FORBIDDEN
+from .config import settings
+from .dependencies import get_db
+from .security import get_current_active_user
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from .security import create_access_token
+from db.crud import get_user_by_username, verify_password
+from db.schemas import UserInDB
 
 app = FastAPI()
 
-def fake_hash_password(password: str):
-    return f"fakehashed{password}"
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return ExtendedUserBase(**user_dict)
-    
-def fake_decode_token(token):
-    user = get_user(fake_users_db, token)
-    return user
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    if user := fake_decode_token(token):
-        return user
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-        
-async def get_current_active_user(
-    current_user: Annotated[ExtendedUserBase, Depends(get_current_user)]
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-# Authenticate  
+async def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> UserInDB:
+    credentials_exception = HTTPException(
+        status_code=HTTP_403_FORBIDDEN,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except PyJWTError:
+        raise credentials_exception
+    user = get_user_by_username(db, username=username)
+    if user is None:
+        raise credentials_exception
+    return UserInDB(**user.__dict__)    
 
 @app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user_by_username(db, username=form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
-    
-    access_token = create_access_token(data={"sub": user.username})
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Incorrect username or password"
+        )
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/users/me")
-async def read_users_me(current_user: ExtendedUserBase = Depends(get_current_user)):
+@app.get("/users/me", response_model=UserInDB)
+async def read_users_me(current_user: UserInDB = Security(get_current_active_user)):
     return current_user
+
+
+
+
+
