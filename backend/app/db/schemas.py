@@ -27,7 +27,9 @@ class UserGptThread(BaseModel):
 
 
 class SafeUser(BaseModel):
-    id: str  # TODO: remove this
+    """
+    Schema for representing a safe user object without sensitive information.
+    """
     email: str
     name: Optional[str] = None
     profile_image: Optional[str] = None
