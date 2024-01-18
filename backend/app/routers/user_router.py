@@ -16,6 +16,39 @@ def get_db():
     finally:
         db.close()
 
+@router.post("/users", response_model=schemas.SafeUser)
+def create_user(
+    user: schemas.UserCreate,
+    db: Session = Depends(get_db),
+) -> schemas.SafeUser:
+    """
+    Create a new user with the given user details.
+
+    Args:
+        user (schemas.UserCreate): The user details to create a new user.
+        db (Session): The database session dependency.
+
+    Returns:
+        schemas.SafeUser: The created user without sensitive information.
+    """
+    db_user = crud.create_user(db=db, user=user)
+    return schemas.SafeUser.from_orm(db_user)
+
+@router.get("/users", response_model=List[schemas.User])
+def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)) -> List[schemas.User]:
+    """
+    Retrieve a list of users with pagination.
+
+    Args:
+        skip (int): The number of items to skip before starting to collect the result set.
+        limit (int): The maximum number of items to return.
+        db (Session): The database session dependency.
+
+    Returns:
+        List[schemas.User]: The list of users.
+    """
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return [schemas.User.from_orm(user) for user in users]
 
 @router.post("/users", response_model=schemas.SafeUser)
 def create_user(
