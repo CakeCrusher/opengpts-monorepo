@@ -15,6 +15,17 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+def create_access_token(*, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a new access token.
+
+    Args:
+        data (dict): The data to encode in the token.
+        expires_delta (Optional[timedelta]): The amount of time until the token expires.
+
+    Returns:
+        str: The encoded JWT token.
+    """
 def create_access_token(*, data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -26,6 +37,20 @@ def create_access_token(*, data: dict, expires_delta: Optional[timedelta] = None
     return encoded_jwt
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """
+    Get the current user from the token.
+
+    Args:
+        token (str): The OAuth2 token.
+        db (Session): The database session dependency.
+
+    Raises:
+        HTTPException: If the token is invalid or the user is not found.
+
+    Returns:
+        User: The user object.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -42,4 +67,5 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     user = get_user_by_username(db, username=token_data)
     if user is None:
         raise credentials_exception
+    return user
     return user
