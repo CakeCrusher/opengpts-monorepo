@@ -8,7 +8,7 @@ from openai.types.beta.assistant import (
 from openai.types.beta.threads import ThreadMessage as OpenaiThreadMessage
 from openai.types.beta.threads.runs import RunStep
 from pydantic import BaseModel
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 Tool = Union[ToolCodeInterpreter, ToolRetrieval]
 
@@ -32,7 +32,7 @@ class RunStatus(Enum):
 class ThreadMetadata(BaseModel):
     gpt_id: str = None
     user_id: str = None
-    title: Optional[str] = None
+    title: str = None
     last_updated: int = None
 
 
