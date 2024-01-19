@@ -65,6 +65,11 @@ def get_user(db: Session, user_id: str):
     return user
 
 
+def find_user(db: Session, email: str):
+    user = db.query(models.User).filter(models.User.email == email).first()
+    return user
+
+
 def get_users(db: Session):
     all_users = db.query(models.User).all()
     return all_users

@@ -1,4 +1,4 @@
-import { PUBLIC_URL } from '$env/static/public';
+import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
 
 export function fetchApi(path: string, method: string, body: object | null = null) {
 	const token = localStorage.getItem('token');
@@ -13,7 +13,7 @@ export function fetchApi(path: string, method: string, body: object | null = nul
 			}
 		: {};
 
-	return fetch(`${PUBLIC_URL}/${path}`, {
+	return fetch(`${PUBLIC_BUSINESS_LAYER_URL}/${path}`, {
 		method,
 		headers: {
 			'Content-Type': 'application/json',
