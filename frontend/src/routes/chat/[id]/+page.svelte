@@ -1,56 +1,61 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
-	import { fetchApi } from '$lib/fetcher';
-	import type { Gpt } from '../../home/types';
-	import { galleryGpts } from '../../home/stores';
-	import { threads } from '$lib/stores/threads';
+	import { gpts } from '$lib/stores/gpts';
+	import type { Gpt } from '$lib/stores/gpts';
+	import { createThreadMessage } from '$lib/stores/threads';
+	import { fetchGpts } from '$lib/stores/gpts';
+	import Threads from './threads.svelte';
+	import Messages from './messages.svelte';
+	import { selectedThreadId } from './stores';
 
 	export let data: PageData;
-	const gpt: Gpt | undefined = $galleryGpts.find((gpt) => gpt.id === data.props.id);
+	let gpt: Gpt | undefined = $gpts.find((gpt) => gpt.id === data.props.id);
 	let inputMessage: string = '';
 
-	function sendMessage() {
-		fetchApi(`gpt/${data.props.id}/thread`, 'POST').then((res) => {
-			threads.update((threads) => [...threads, res]);
+	async function sendMessage() {
+		if (!gpt) {
+			return;
+		}
 
-			fetchApi(`gpt/${data.props.id}/thread/${res.id}/messages`, 'POST', {
-				content: inputMessage
-			}).then((res) => {
-				console.log(res);
-			});
-		});
+		if (!$selectedThreadId) {
+			alert('Select a thread first!');
+			return;
+		}
+		await createThreadMessage(data.props.id, $selectedThreadId, inputMessage);
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		if (!gpt) {
-			fetchApi(`gpt`, 'GET').then((res) => {
-				galleryGpts.update((gpts) => [...gpts, res]);
-			});
+			const fetchedGpts = await fetchGpts();
+			gpt = fetchedGpts.find((gpt) => gpt.id === data.props.id);
 		}
 	});
 </script>
 
-<main>
-	<h1>Chat</h1>
-</main>
-<form class="message-box" on:submit={sendMessage}>
-	<input type="text" placeholder="Message Assistant..." bind:value={inputMessage} />
-</form>
+<div class="content">
+	<Threads gptId={gpt?.id} />
+	<main>
+		<Messages />
+		<form class="message-box" on:submit={sendMessage}>
+			<input type="text" placeholder="Message Assistant..." bind:value={inputMessage} />
+		</form>
+	</main>
+</div>
 
 <style>
+	.content {
+		display: flex;
+		flex-direction: row;
+	}
+
 	main {
-		max-width: 800px;
-		margin: 0 auto;
+		box-sizing: border-box;
 		padding: 2rem;
+		width: 100%;
 	}
 
 	.message-box {
-		left: 50%;
-		transform: translateX(-50%);
-		position: fixed;
-		bottom: 1rem;
 		width: 100%;
-		max-width: 800px;
 	}
 </style>

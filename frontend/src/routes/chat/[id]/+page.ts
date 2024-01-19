@@ -7,3 +7,5 @@ export function load({ params }) {
 		}
 	};
 }
+
+export const ssr = false;

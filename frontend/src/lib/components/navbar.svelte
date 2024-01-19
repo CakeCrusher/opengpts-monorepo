@@ -27,6 +27,7 @@
 		display: flex;
 		justify-content: space-between;
 		padding: 0.5rem;
+		background-color: #b8f2d5;
 	}
 
 	.link {
