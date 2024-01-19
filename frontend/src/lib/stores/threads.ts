@@ -75,6 +75,7 @@ export async function createThread(gptId: string, title: string) {
 }
 
 export async function createThreadMessage(gptId: string, threadId: string, message: string) {
+	console.log("creating thread message")
 	const res = await fetchApi(`gpt/${gptId}/thread/${threadId}/messages`, 'POST', {
 		content: message
 	});
@@ -83,7 +84,7 @@ export async function createThreadMessage(gptId: string, threadId: string, messa
 	threads.update((threads) => {
 		const thread = threads.find((thread) => thread.id === threadId);
 		if (thread) {
-			thread.threadMessages.push(res);
+			thread.threadMessages.unshift(...res);
 		}
 		return threads;
 	});
