@@ -4,6 +4,7 @@
 	import { selectedThreadId } from './stores';
 
 	export let gptId: string | undefined;
+	let threadTitle: string = '';
 
 	async function setThread(threadId: string) {
 		if (!gptId) {
@@ -23,7 +24,8 @@
 
 <div class="threads">
 	{#if gptId}
-		<button class="create-thread" on:click={async () => await createThread(gptId, '')}
+		<input bind:value={threadTitle} type="text" placeholder="Thread Title" />
+		<button class="create-thread" on:click={async () => await createThread(gptId, threadTitle)}
 			>Create Thread</button
 		>
 	{/if}
