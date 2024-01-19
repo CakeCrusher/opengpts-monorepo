@@ -6,6 +6,15 @@ import uuid
 
 
 # THREAD
+def delete_all_threads(db: Session) -> List[models.User_gpt_thread]:
+    user_gpt_threads = db.query(models.User_gpt_thread).all()
+    for thread in user_gpt_threads:
+        db.delete(thread)
+    db.commit()
+    # return the deleted threads
+    return user_gpt_threads
+
+
 def create_thread(
     db: Session, user_gpt_thread: schemas.UserGptThread
 ) -> models.User_gpt_thread:

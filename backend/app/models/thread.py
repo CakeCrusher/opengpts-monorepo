@@ -50,6 +50,10 @@ class CreateThreadMessage(BaseModel):
     content: str
 
 
+class CreateThread(BaseModel):
+    title: str
+
+
 class MessagesRunStepResponse(BaseModel):
     messages: List[ThreadMessage]
     runs_steps: Dict[str, List[RunStep]]
