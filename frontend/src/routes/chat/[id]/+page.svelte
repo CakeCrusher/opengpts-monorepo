@@ -8,8 +8,10 @@
 	import Threads from './threads.svelte';
 	import Messages from './messages.svelte';
 	import { selectedThreadId } from './stores';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
+	const threadId = $page.url.searchParams.get('threadId');
 	let gpt: Gpt | undefined = $gpts.find((gpt) => gpt.id === data.props.id);
 	let inputMessage: string = '';
 
@@ -29,6 +31,9 @@
 		if (!gpt) {
 			const fetchedGpts = await fetchGpts();
 			gpt = fetchedGpts.find((gpt) => gpt.id === data.props.id);
+		}
+		if (threadId) {
+			$selectedThreadId = threadId;
 		}
 	});
 </script>
