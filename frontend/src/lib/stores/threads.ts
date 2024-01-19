@@ -1,5 +1,6 @@
 import { fetchApi } from '$lib/fetcher';
 import { writable } from 'svelte/store';
+import { selectedThreadId } from '../../routes/chat/[id]/stores';
 
 export type Thread = {
 	id: string;
@@ -70,6 +71,7 @@ export async function createThread(gptId: string, title: string) {
 		threads.push(res);
 		return threads;
 	});
+	selectedThreadId.set(res.id);
 }
 
 export async function createThreadMessage(gptId: string, threadId: string, message: string) {
