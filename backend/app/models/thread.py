@@ -6,8 +6,9 @@ from openai.types.beta.assistant import (
 
 # from openai.types.beta.thread import Thread
 from openai.types.beta.threads import ThreadMessage as OpenaiThreadMessage
+from openai.types.beta.threads.runs import RunStep
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Dict, List, Optional, Union
 
 Tool = Union[ToolCodeInterpreter, ToolRetrieval]
 
@@ -47,3 +48,8 @@ class UpsertCustomThread(BaseModel):
 
 class CreateThreadMessage(BaseModel):
     content: str
+
+
+class MessagesRunStepResponse(BaseModel):
+    messages: List[ThreadMessage]
+    runs_steps: Dict[str, List[RunStep]]

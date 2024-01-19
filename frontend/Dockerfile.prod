@@ -1,0 +1,21 @@
+# Use an official Node.js runtime as a parent image
+FROM node:21-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . .
+
+ENV NODE_ENV development
+
+RUN npm install 
+
+# Build the SvelteKit application
+RUN npm run build
+
+# Install a simple http server to serve static content
+RUN npm install -g serve
+
+# Run the http server when the container launches
+CMD ["npm", "run", "preview"]
