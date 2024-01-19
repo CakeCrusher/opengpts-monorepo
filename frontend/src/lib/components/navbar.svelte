@@ -18,6 +18,7 @@
 			<a class="link" href="/create">New GPT</a>
 		{:else}
 			<a class="link" href="/login">Register/Login</a>
+			<a class="link" href="/logout">Log Out</a>
 		{/if}
 	</div>
 </div>

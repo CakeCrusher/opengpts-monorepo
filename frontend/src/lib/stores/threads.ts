@@ -78,7 +78,6 @@ export async function createThreadMessage(gptId: string, threadId: string, messa
 	const res = await fetchApi(`gpt/${gptId}/thread/${threadId}/messages`, 'POST', {
 		content: message
 	});
-	console.log('RES', res);
 
 	threads.update((threads) => {
 		const thread = threads.find((thread) => thread.id === threadId);
