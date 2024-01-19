@@ -11,7 +11,7 @@ POSTGRES_DB = os.environ.get("POSTGRES_DB")
 
 databse_url = (
     f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@"
-    + "{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    + f"{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 )
 
 engine = create_engine(databse_url)
