@@ -1,18 +1,15 @@
 <script>
-	import { galleryGpts } from './stores';
-	import GptCard from './gpt-card.svelte';
 	import { onMount } from 'svelte';
-	import { fetchApi } from '$lib/fetcher';
+	import { gpts, fetchGpts } from '$lib/stores/gpts';
+	import GptCard from './gpt-card.svelte';
 
 	onMount(() => {
-		fetchApi('gpt', 'GET').then((res) => {
-			galleryGpts.set(res);
-		});
+		fetchGpts();
 	});
 </script>
 
 <div class="gallery">
-	{#each $galleryGpts as gpt}
+	{#each $gpts as gpt}
 		<GptCard {gpt} />
 	{/each}
 </div>

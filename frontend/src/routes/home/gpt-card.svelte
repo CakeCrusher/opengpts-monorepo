@@ -4,14 +4,14 @@
 	export let gpt: Gpt;
 </script>
 
-<div class="card">
+<a class="card" href={`/chat/${gpt.id}`}>
 	<!-- <img class="card-image" src={gpt.imageUrl} alt="" /> -->
 	<div class="card-content">
 		<h3 class="name">{gpt.name}</h3>
 		<p class="description">{gpt.description}</p>
 		<p class="author">{gpt.metadata.user_name}</p>
 	</div>
-</div>
+</a>
 
 <style>
 	.card {
@@ -22,6 +22,15 @@
 		box-shadow:
 			0 0 0 1px rgba(0, 0, 0, 0.1),
 			0 2px 4px rgba(0, 0, 0, 0.1);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.card:hover {
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.1),
+			0 4px 8px rgba(0, 0, 0, 0.1);
+		margin-top: -0.5rem;
 	}
 
 	.card-image {
