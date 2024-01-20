@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import requests
 import os
 import dotenv
@@ -16,6 +18,12 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
 # This is the URL of your domain name plus /login/google
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+async def root():
+    return FileResponse('static/index.html')
 
 @app.get("/login/google")
 async def login_google():
