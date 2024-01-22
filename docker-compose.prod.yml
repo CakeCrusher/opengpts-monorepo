@@ -15,12 +15,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  backend:
+  backendprod:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/backend
+      dockerfile: Dockerfile.prod
     ports:
       - "8000:8000"
     depends_on:
@@ -32,8 +30,20 @@ services:
       POSTGRES_PASSWORD: devpass
       POSTGRES_DB: mydatabase
       OPENAI_API_KEY: 
-      ASSISTANTS_URL: http://host.docker.internal:3000
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      ASSISTANTS_URL: 
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  frontendprod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "4173:4173"
+    depends_on:
+      - backendprod
+    environment:
+      PUBLIC_BUSINESSLAYER_HOST: http://localhost:8000
+    command: npm run preview
 
 volumes:
   postgres_data:

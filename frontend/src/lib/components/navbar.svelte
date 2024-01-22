@@ -18,6 +18,7 @@
 			<a class="link" href="/create">New GPT</a>
 		{:else}
 			<a class="link" href="/login">Register/Login</a>
+			<a class="link" href="/logout">Log Out</a>
 		{/if}
 	</div>
 </div>
@@ -26,6 +27,8 @@
 	.links {
 		display: flex;
 		justify-content: space-between;
+		padding: 0.5rem;
+		background-color: #b8f2d5;
 	}
 
 	.link {

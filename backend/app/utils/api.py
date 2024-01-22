@@ -5,11 +5,13 @@ from typing import List, Optional
 from openai.types.beta.threads.runs import RunStep
 
 load_dotenv()
-print("BASE_URL", os.environ.get("BASE_URL"))
+
+ASSISTANTS_URL = os.environ.get("ASSISTANTS_URL")
+
+openai_client = None
+
 openai_client = OpenAI(
-    base_url=os.environ.get("BASE_URL")
-    if os.environ.get("BASE_URL")
-    else None,
+    base_url=ASSISTANTS_URL if ASSISTANTS_URL else None,
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 

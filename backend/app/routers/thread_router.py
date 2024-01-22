@@ -15,6 +15,7 @@ from db.database import SessionLocal
 from sqlalchemy.orm import Session
 from db import crud, schemas
 from models.thread import (
+    CreateThread,
     MessagesRunStepResponse,
     CustomThread,
     CreateThreadMessage,
@@ -42,8 +43,14 @@ def get_db():
         db.close()
 
 
+@router.delete("/thread")
+def delete_all_treads(db: Session = Depends(get_db)):
+    crud.delete_all_threads(db)
+
+
 @router.post("/gpt/{gpt_id}/thread", response_model=CustomThread)
 def create_thread(
+    request: CreateThread,
     gpt_id: str,
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
@@ -53,6 +60,7 @@ def create_thread(
 
     Args:
     - gpt_id (str): The ID of the GPT.
+    - request (CreateThread): More thread details.
 
     Headers:
     - auth (str): Bearer <USER_ID>
@@ -61,6 +69,7 @@ def create_thread(
     - CustomThread: The created thread.
     """
     thread_metadata: ThreadMetadata = {
+        "title": request.title,
         "gpt_id": gpt_id,
         "user_id": user_id,
         "last_updated": int(datetime.now().timestamp()),
@@ -118,7 +127,7 @@ def create_thread_message(
     - auth (str): Bearer <USER_ID>
 
     Returns:
-    - SyncCursorPage[ThreadMessage]: The message history including the
+    - List[ThreadMessage]: The message history including the
       assistant response.
     """
     user_message = openai_client.beta.threads.messages.create(
@@ -189,7 +198,7 @@ def get_thread_messages(
     - auth (str): Bearer <USER_ID>
 
     Returns:
-    - SyncCursorPage[ThreadMessage]: All of the messages in a the thread.
+    - List[ThreadMessage]: All of the messages in a the thread.
     """
     if not crud.get_user_gpt_thread(db, user_id, gpt_id, thread_id):
         raise HTTPException(

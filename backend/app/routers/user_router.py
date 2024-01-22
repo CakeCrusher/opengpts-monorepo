@@ -39,7 +39,9 @@ def create_user(
         if not db_user:
             raise HTTPException(status_code=404, detail="User not found")
     else:
-        db_user = crud.create_user(db=db, user=user)
+        db_user = crud.find_user(db=db, email=user.email)
+        if not db_user:
+            db_user = crud.create_user(db=db, user=user)
 
     response.headers["auth"] = f"Bearer {db_user.id}"
 

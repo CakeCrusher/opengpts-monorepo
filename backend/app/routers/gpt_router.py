@@ -207,11 +207,39 @@ def publish_gpt(
     return (staging_assistant, updated_main_gpt.model_dump())
 
 
-@router.post("/gpt/uploadfile", response_model=FileObject)
-async def create_upload_file(file: UploadFile):
+@router.post("/gpt/file", response_model=FileObject)
+async def upload_file(file: UploadFile, user_id: str = Depends(get_user_id)):
+    """
+    Upload a file to Assistants API.
+
+    Args:
+    - file (UploadFile): The file to upload.
+
+    Headers:
+    - auth (str): Bearer <USER_ID>
+
+    Returns:
+    - FileObject: Object containing file id and other details.
+    """
     content = await file.read()
     assistant_file = openai_client.files.create(
         file=(file.filename, content),
         purpose='assistants',
+        # metadata={
+        #     "user_id": user_id,
+        # },
     )
+    return assistant_file
+
+
+@router.get("/gpt/file/{file_id}", response_model=FileObject)
+async def get_uploaded_file(file_id: str, user_id: str = Depends(get_user_id)):
+    assistant_file = openai_client.files.retrieve(
+        file_id=file_id,
+    )
+    # if assistant_file.metadata["user_id"] != user_id:
+    #     raise HTTPException(
+    #         status_code=404,
+    #         detail="User does not have access to this file.",
+    #     )
     return assistant_file
