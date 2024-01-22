@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi import APIRouter
 import requests
 import os
 import dotenv
@@ -9,7 +10,8 @@ dotenv.load_dotenv()
 from jose import jwt
 
 
-app = FastAPI() 
+app = FastAPI()
+router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Replace these with your own values from the Google Developer Console
@@ -31,7 +33,7 @@ async def login_google():
         "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
     }
 
-@app.get("/auth/google")
+@router.get("/auth/google")
 async def auth_google(code: str):
     token_url = "https://accounts.google.com/o/oauth2/token"
     data = {
