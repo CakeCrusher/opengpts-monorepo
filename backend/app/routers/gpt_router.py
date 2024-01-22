@@ -64,6 +64,18 @@ def create_gpt(
     return staging_gpt
 
 
+# delete all gpts
+@router.delete("/gpt")
+def delete_all_gpts_and_threads(
+    db: Session = Depends(get_db),
+):
+    assistants = openai_client.beta.assistants.list()
+    for assistant in assistants.data:
+        openai_client.beta.assistants.delete(assistant.id)
+    crud.delete_all_gpts_and_threads(db=db)
+    return {"message": "All GPTs deleted."}
+
+
 @router.get("/gpt", response_model=List[GptMain | GptStaging])
 def list_gpts(
     query: Optional[str] = None,

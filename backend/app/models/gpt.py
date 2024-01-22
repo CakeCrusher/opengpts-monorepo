@@ -38,7 +38,7 @@ class GptMain(BaseModel):
     instructions: Optional[str]
     metadata: GptMainMetadata
     name: str
-    model: Model
+    model: str  # TODO: make enum
     tools: List[Tool]
 
 
@@ -50,7 +50,7 @@ class GptStaging(BaseModel):
     instructions: Optional[str]
     metadata: GptStagingMetadata
     name: str
-    model: Model
+    model: str  # TODO: make enum
     tools: List[Tool]
 
 

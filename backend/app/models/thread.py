@@ -33,7 +33,7 @@ class ThreadMetadata(BaseModel):
     gpt_id: str = None
     user_id: str = None
     title: str = None
-    last_updated: int = None
+    last_updated: str = None
 
 
 class CustomThread(BaseModel):
