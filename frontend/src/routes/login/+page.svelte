@@ -3,14 +3,20 @@
 	import { fetchApi } from '$lib/fetcher';
 	import { user } from '$lib/stores/user';
 
-	function submit(e: Event) {
-		localStorage.clear();
-		const email = e.target?.email.value;
-		fetchApi('users', 'POST', { email }).then((response) => {
-			user.set(response);
-			localStorage.setItem('token', response.id);
-			goto('/');
-		});
+	async function submit(e: Event) {
+		e.preventDefault();
+		try {
+			const response = await fetchApi('login/google', 'GET');
+			if (response.url) {
+				window.location.href = response.url;
+			} else {
+				// Handle error: No URL in response
+				console.error('No URL in response from backend');
+			}
+		} catch (error) {
+			// Handle error: Failed to make request to backend
+			console.error('Failed to make request to backend', error);
+		}
 	}
 </script>
 

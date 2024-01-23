@@ -1,4 +1,4 @@
-#!/home/jimsu/code/opengpts-monorepo/backend/venv/bin/python
+#!/home/anon/ubuntu-repos/opengpts-monorepo/backend/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
