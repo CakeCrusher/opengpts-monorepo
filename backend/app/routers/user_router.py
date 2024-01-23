@@ -1,20 +1,11 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from utils.parsers import get_optional_user_id
-from db.database import SessionLocal
+from db.database import get_db
 from sqlalchemy.orm import Session
 from db import crud, schemas
 
 router = APIRouter()
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/users", response_model=schemas.SafeUser)
