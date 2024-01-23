@@ -3,14 +3,12 @@
 	import { fetchApi } from '$lib/fetcher';
 	import { user } from '$lib/stores/user';
 
-	function submit(e: Event) {
-		localStorage.clear();
-		const email = e.target?.email.value;
-		fetchApi('users', 'POST', { email }).then((response) => {
-			user.set(response);
-			localStorage.setItem('token', response.id);
-			goto('/');
-		});
+	async function submit(e: Event) {
+		e.preventDefault();
+		const response = await fetchApi('login/google', 'GET');
+		if (response.url) {
+			window.location.href = response.url;
+		}
 	}
 </script>
 

@@ -1,9 +1,10 @@
+from jose import jwt
+from datetime import datetime, timedelta
 from datetime import timezone
 from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi import APIRouter
 from app.db import crud, models, schemas
 from app.db.database import SessionLocal
@@ -11,8 +12,7 @@ import requests
 import os
 import dotenv
 dotenv.load_dotenv()
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
+
 
 # Dependency to get the database session
 def get_db():
