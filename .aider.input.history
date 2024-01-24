@@ -1,0 +1,51 @@
+
+# 2024-01-18 14:58:32.320179
++/add backend/app/pwbearer.py backend/app/auth/security.py, backend/app/db/schemas.py, backend/app/db/models.py, backend/app/db/crud.py, backend/app/db/database.py, backend/app/utils/parsers.py, backend/app/routers/user_router.py 
+
+# 2024-01-18 14:59:51.881852
++/git
+
+# 2024-01-18 15:00:50.213623
++/git switch feat/oauth/dummy-impl-test
+
+# 2024-01-18 15:01:32.659904
++/add backend/app/auth/security.py backend/app/db/schemas.py backend/app/db/models.py backend/app/db/crud.py backend/app/db/database.py backend/app/utils/parsers.py backend/app/routers/user_router.py 
+
+# 2024-01-18 15:05:42.389959
++I've got a basic oauth setup that i'm trying to implement in this python backend to manage user logins and the objects associated with the user account. i'm not very familiar with oauth, so i've mostly been following generic tutorials, and now i need to take my scaffold and convert it to something that actually integrates with our db. can we start off by walking through all the files i've added to the chat, verify that I don't need to add any more based on the filesystem you can see, then start adding docstrings to get a good picture of how state flow is working and figure out if there's any discrepancies in how objects are being handled. Along the way we should delete any incorrect scaffolding and replace it with TODO comments. There's likely to be some mistakes that a junior developer would make, so play the role of a senior developer doing code review for the purposes of educating the junior.
+
+# 2024-01-18 15:07:14.461746
++great! let's continue with the rest of the files
+
+# 2024-01-18 15:08:37.210251
++yep, let's continue
+
+# 2024-01-18 15:15:50.438702
++awesome, let's go ahead and continue
+
+# 2024-01-18 15:20:22.015507
++yep, let's go ahead and keep going
+
+# 2024-01-18 15:27:03.639126
++`backend/app/auth/pwbearer.py` for this one, i've mostly got dummy values in it so far -- after we've covered the existing list of files I provided for you, can we update this file to actually handle the auth and db interactions?
+
+# 2024-01-18 15:33:19.500532
++let's give that another try -- remember that the diffs you're creating are directly commited, so you need to match the text exactly for them to work. for instance, in your last entry, you forgot to include the { `ExtendedUserBase` in the fake_users_db.
+
+# 2024-01-18 15:35:30.977732
++please refer to your instructions, take a deep breath, and think step-by-step about what you need to do in response to my query. let's try it one more time.
+
+# 2024-01-18 15:41:22.347878
++/git
+
+# 2024-01-18 15:41:42.730225
++/git pull
+
+# 2024-01-18 15:44:08.962900
++alright, i've updated the file manually so you don't need to retry that specific diff. mind taking a look at pwbearer.py and going through it to create the appropriate routes/interfaces that our real postgres db will need?
+
+# 2024-01-18 15:45:14.054169
++/add backend/app/auth/pwbearer.py
+
+# 2024-01-18 15:45:39.370929
++you should have the updated version of the file now -- go ahead and try to directly edit it.

@@ -1,6 +1,40 @@
 <script>
 	import Navbar from '$lib/components/navbar.svelte';
+	import { onMount } from 'svelte';
 	import './global.css';
+	import { fetchApi } from '$lib/fetcher';
+	import { goto } from '$app/navigation';
+	import { user } from '$lib/stores/user';
+
+
+	onMount(async () => {
+		let token = localStorage.getItem('token');
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const urlToken = urlParams.get('token');
+
+		if (urlToken) {
+			token = urlToken;
+			urlParams.delete('token');
+			window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
+		} 
+		if (token) {
+			localStorage.setItem('token', token);
+			const response = await fetchApi('login', 'GET');
+
+			if (response.email) {
+				// Store the access token and user details
+				user.set(response);
+
+				// Redirect the user to the home page
+				goto('/');
+			} else {
+				localStorage.removeItem('token');
+				// Handle error
+				console.error('Failed to authenticate user');
+			}
+		}
+	});
 </script>
 
 <svelte:head>

@@ -14,11 +14,11 @@
 		<a class="link" href="/">Home</a>
 	</div>
 	<div class="right">
-		{#if isLoggedIn}
+		{#if isLoggedIn && user !== null}
 			<a class="link" href="/create">New GPT</a>
+			<a class="link" href="/logout">Log Out of {$user && $user.name}</a>
 		{:else}
 			<a class="link" href="/login">Register/Login</a>
-			<a class="link" href="/logout">Log Out</a>
 		{/if}
 	</div>
 </div>

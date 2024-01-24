@@ -20,5 +20,11 @@ export function fetchApi(path: string, method: string, body: object | null = nul
 			...details
 		},
 		...bodyKwargs
-	}).then((res) => res.json());
+	})
+		.then((res) => res.json())
+		.catch((error) => {
+			// Handle the error here
+			console.error('API request failed:', error);
+			throw error; // Rethrow the error to propagate it further
+		});
 }

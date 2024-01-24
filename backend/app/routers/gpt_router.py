@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from utils.parsers import get_user_id
 from db.database import SessionLocal
-from models.gpt import UpsertGpt, GptMain, GptStaging
+from models.gpt import UpsertGpt, GptMain, GptStaging, Gpt
+from db.database import get_db
 
 from sqlalchemy.orm import Session
 from db import crud, schemas
@@ -14,16 +15,8 @@ from utils.api import openai_client
 router = APIRouter()
 
 
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-
-@router.post("/gpt", response_model=GptMain)
+@router.post("/gpt", response_model=Gpt)
 def create_gpt(
     request: UpsertGpt,
     user_id: str = Depends(get_user_id),
@@ -55,7 +48,7 @@ def create_gpt(
         "ref": main_gpt.id,
     }
     staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
-
+    print("user_id", user_id)
     crud.create_user_gpt(
         db=db,
         user_gpt=schemas.UserGpt(user_id=user_id, gpt_id=staging_gpt.id),
@@ -64,19 +57,16 @@ def create_gpt(
     return staging_gpt
 
 
-# delete all gpts
+
 @router.delete("/gpt")
-def delete_all_gpts_and_threads(
-    db: Session = Depends(get_db),
-):
-    assistants = openai_client.beta.assistants.list()
-    for assistant in assistants.data:
-        openai_client.beta.assistants.delete(assistant.id)
-    crud.delete_all_gpts_and_threads(db=db)
-    return {"message": "All GPTs deleted."}
+def delete_all_gpts(db: Session = Depends(get_db)):
+    for gpt in openai_client.beta.assistants.list().data:
+        openai_client.beta.assistants.delete(gpt.id)
+    crud.delete_all_gpts(db)
+    crud.delete_all_threads(db)
 
 
-@router.get("/gpt", response_model=List[GptMain | GptStaging])
+@router.get("/gpt", response_model=List[Gpt])
 def list_gpts(
     query: Optional[str] = None,
     user_id: Optional[str] = None,
@@ -93,23 +83,7 @@ def list_gpts(
     - List[Gpt]: The list of GPTs.
     """
     assistants = openai_client.beta.assistants.list()
-    print(
-        "assistants: ",
-        json.dumps(
-            [assistant.model_dump() for assistant in assistants.data], indent=2
-        ),
-    )
-    # # USE FOR METADATA ERRORS: Useful for for whenever there are changes to
-    # # Metadata structure
-    # for assistant in assistants.data:
-    #     print("deleting", assistant)
-    #     client.beta.assistants.delete(assistant.id)
-    all_gpts: List[GptMain | GptStaging] = []
-    for assistant in assistants.data:
-        if assistant.metadata and assistant.metadata.get("is_staging"):
-            all_gpts.append(GptStaging(**assistant.model_dump()))
-        else:
-            all_gpts.append(GptMain(**assistant.model_dump()))
+    all_gpts = [Gpt(**dict(assistant)) for assistant in assistants.data]
     if query:
         all_gpts = [
             gpt

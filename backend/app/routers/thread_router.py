@@ -11,7 +11,7 @@ bearer 99d834cd-b052-4d56-9914-818aacca8533
 from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException
 from utils.parsers import get_user_id
-from db.database import SessionLocal
+from db.database import get_db
 from sqlalchemy.orm import Session
 from db import crud, schemas
 from models.thread import (
@@ -33,15 +33,6 @@ import json
 # msgs = client.beta.threads.messages.list(th.id)
 
 router = APIRouter()
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.delete("/thread")
