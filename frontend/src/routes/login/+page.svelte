@@ -1,35 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { fetchApi } from '$lib/fetcher';
-	import { user } from '$lib/stores/user';
+	import { onMount } from 'svelte';
+	import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
 
-	function submit(e: Event) {
-		localStorage.clear();
-		const email = e.target?.email.value;
-		fetchApi('users', 'POST', { email }).then((response) => {
-			user.set(response);
-			localStorage.setItem('token', response.id);
-			goto('/');
-		});
-	}
+	onMount(async () => {
+		window.location.href = `${PUBLIC_BUSINESS_LAYER_URL}/login/google`
+	});
 </script>
-
-<div class="page">
-	<h1>Register or Log In</h1>
-	<form on:submit|preventDefault={(e) => submit(e)}>
-		<label class="label--block" for="email">Email</label>
-		<input type="text" name="email" id="email" placeholder="Email" />
-		<input class="submit" type="submit" value="Submit" />
-	</form>
-</div>
-
-<style>
-	.page {
-		max-width: 400px;
-		margin: 0 auto;
-	}
-
-	.submit {
-		margin-top: 1rem;
-	}
-</style>

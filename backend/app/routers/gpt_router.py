@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from utils.parsers import get_user_id
-from db.database import SessionLocal
+from db.database import get_db
 from models.gpt import UpsertGpt, Gpt
 
 from sqlalchemy.orm import Session
@@ -11,15 +11,6 @@ from openai.types import FileObject
 from utils.api import openai_client
 
 router = APIRouter()
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/gpt", response_model=Gpt)
@@ -57,13 +48,21 @@ def create_gpt(
         "ref": main_gpt.id,
     }
     staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
-
+    print("user_id", user_id)
     crud.create_user_gpt(
         db=db,
         user_gpt=schemas.UserGpt(user_id=user_id, gpt_id=staging_gpt.id),
     )
 
     return staging_gpt
+
+
+@router.delete("/gpt")
+def delete_all_gpts(db: Session = Depends(get_db)):
+    for gpt in openai_client.beta.assistants.list().data:
+        openai_client.beta.assistants.delete(gpt.id)
+    crud.delete_all_gpts(db)
+    crud.delete_all_threads(db)
 
 
 @router.get("/gpt", response_model=List[Gpt])
@@ -83,11 +82,6 @@ def list_gpts(
     - List[Gpt]: The list of GPTs.
     """
     assistants = openai_client.beta.assistants.list()
-    # # USE FOR METADATA ERRORS: Useful for for whenever there are changes to
-    # # Metadata structure
-    # for assistant in assistants.data:
-    #     print("deleting", assistant)
-    #     client.beta.assistants.delete(assistant.id)
     all_gpts = [Gpt(**dict(assistant)) for assistant in assistants.data]
     if query:
         all_gpts = [

@@ -60,6 +60,15 @@ def get_user_gpt_thread(
 
 
 # USER
+def delete_all_gpts(db: Session) -> List[models.User_gpt]:
+    user_gpts = db.query(models.User_gpt).all()
+    for gpt in user_gpts:
+        db.delete(gpt)
+    db.commit()
+    # return the deleted gpts
+    return user_gpts
+
+
 def get_user(db: Session, user_id: str):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     return user
@@ -73,6 +82,15 @@ def find_user(db: Session, email: str):
 def get_users(db: Session):
     all_users = db.query(models.User).all()
     return all_users
+
+
+def delete_all_users(db: Session) -> List[models.User]:
+    users = db.query(models.User).all()
+    for user in users:
+        db.delete(user)
+    db.commit()
+    # return the deleted users
+    return users
 
 
 def create_user(db: Session, user: schemas.UserCreate):
