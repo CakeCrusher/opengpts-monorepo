@@ -26,6 +26,7 @@ from datetime import datetime
 import time
 from utils.api import get_run_steps, openai_client
 from openai.types.beta.threads.runs import RunStep
+import json
 
 
 # th = client.beta.threads.retrieve("th-1Y2J5Z5QX1QJ5")
@@ -63,7 +64,7 @@ def create_thread(
         "title": request.title,
         "gpt_id": gpt_id,
         "user_id": user_id,
-        "last_updated": int(datetime.now().timestamp()),
+        "last_updated": int(datetime.now().timestamp()).__str__(),
     }
     thread = openai_client.beta.threads.create(metadata=thread_metadata)
     user_gpt_thread = schemas.UserGptThread(
@@ -132,7 +133,7 @@ def create_thread_message(
         assistant_id=gpt_id,
     )
 
-    max_wait_iterations = 20  # (max_wait_iterations / 2) = seconds to wait
+    max_wait_iterations = 30  # (max_wait_iterations / 2) = seconds to wait
     i = 0
     while i < max_wait_iterations:
         i += 1
@@ -140,6 +141,8 @@ def create_thread_message(
             thread_id=thread_id,
             run_id=run.id,
         )
+
+        print("RUN: ", json.dumps(run.model_dump(), indent=2))
 
         if run.status == "completed":
             break
@@ -153,7 +156,7 @@ def create_thread_message(
     else:
         raise HTTPException(
             status_code=500,
-            detail="GPT run failed. With status: " + run.status,
+            detail="GPT timeout. With status: " + run.status,
         )
     print("RUN: ", run)
 
@@ -162,6 +165,7 @@ def create_thread_message(
     )
     messages_list = []
     for message in messages:
+        print("MESSAGE: ", json.dumps(message.model_dump(), indent=2))
         messages_list.append(message)
         if message.id == user_message.id:
             break

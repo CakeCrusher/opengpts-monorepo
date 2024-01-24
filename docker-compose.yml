@@ -32,7 +32,7 @@ services:
       POSTGRES_PASSWORD: devpass
       POSTGRES_DB: mydatabase
       OPENAI_API_KEY: 
-      ASSISTANTS_URL: 
+      ASSISTANTS_URL: http://host.docker.internal:3000
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:

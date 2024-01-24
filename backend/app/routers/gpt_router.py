@@ -1,9 +1,11 @@
+import json
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from utils.parsers import get_user_id
+from db.database import SessionLocal
+from models.gpt import UpsertGpt, GptMain, GptStaging, Gpt
 from db.database import get_db
-from models.gpt import UpsertGpt, Gpt
 
 from sqlalchemy.orm import Session
 from db import crud, schemas
@@ -11,6 +13,7 @@ from openai.types import FileObject
 from utils.api import openai_client
 
 router = APIRouter()
+
 
 
 @router.post("/gpt", response_model=Gpt)
@@ -34,17 +37,14 @@ def create_gpt(
 
     # Create Main GPT Instance
     main_gpt_dict = dict(request)
-    main_gpt_dict["metadata"] = {
-        **dict(request.metadata),
-        "is_staging": False,
-    }
+    main_gpt_dict["metadata"] = dict(request.metadata)
     main_gpt = openai_client.beta.assistants.create(**main_gpt_dict)
 
     # Create Staging GPT Instance
     staging_gpt_dict = dict(request)
     staging_gpt_dict["metadata"] = {
         **dict(request.metadata),
-        "is_staging": True,
+        "is_staging": "true",
         "ref": main_gpt.id,
     }
     staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
@@ -55,6 +55,7 @@ def create_gpt(
     )
 
     return staging_gpt
+
 
 
 @router.delete("/gpt")
@@ -99,7 +100,7 @@ def list_gpts(
     return all_gpts
 
 
-@router.patch("/gpt/{assistant_id}/update", response_model=Gpt)
+@router.patch("/gpt/{assistant_id}/update", response_model=GptStaging)
 def update_gpt(
     assistant_id,
     request: UpsertGpt,
@@ -129,28 +130,26 @@ def update_gpt(
         )
 
     # Update the staging GPT Assistant
-    updated_gpt_dict = dict(request)
-    updated_gpt_dict["metadata"] = dict(request.metadata)
     updated_gpt = openai_client.beta.assistants.update(
-        assistant_id, **updated_gpt_dict
+        assistant_id, **request.model_dump()
     )
 
     return updated_gpt
 
 
-@router.patch("/gpt/{assistant_id}/publish", response_model=tuple[Gpt, Gpt])
+@router.post(
+    "/gpt/{assistant_id}/publish", response_model=tuple[GptStaging, GptMain]
+)
 def publish_gpt(
     assistant_id,
-    request: UpsertGpt,
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
 ):
     """
-    Save your staging GPT and publish to its corresponding main GPT.
+    Publish your staging GPT to its corresponding main GPT.
 
     Args:
     - assistant_id (str): The ID of the assistant to update.
-    - request (UpsertGpt): The updated GPT data.
 
     Headers:
     - auth (str): Bearer <USER_ID>
@@ -167,27 +166,19 @@ def publish_gpt(
             detail="User does not have access to this GPT instance.",
         )
 
-    request_gpt = openai_client.beta.assistants.retrieve(assistant_id)
+    request_assistant = openai_client.beta.assistants.retrieve(assistant_id)
 
-    # Update the staging GPT Assistant
-    updated_staging_gpt_dict = dict(request)
-    updated_staging_gpt_dict["metadata"] = {
-        **dict(request.metadata),
-        "is_staging": True,
-        "ref": request_gpt.metadata["ref"],
-    }
-
-    updated_staging_gpt = openai_client.beta.assistants.update(
-        assistant_id, **updated_staging_gpt_dict
-    )
-
-    # Update the main GPT Assistant
-    updated_main_gpt_dict = updated_staging_gpt_dict
-    updated_main_gpt_dict["metadata"]["is_staging"] = False
-    del updated_main_gpt_dict["metadata"]["ref"]
+    json_request_assistant = request_assistant.model_dump()
+    del json_request_assistant["object"]
+    del json_request_assistant["created_at"]
+    staging_assistant = json.loads(json.dumps(json_request_assistant))
+    del json_request_assistant["id"]
+    main_assistant_id = json_request_assistant["metadata"]["ref"]
+    del json_request_assistant["metadata"]["is_staging"]
+    del json_request_assistant["metadata"]["ref"]
 
     updated_main_gpt = openai_client.beta.assistants.update(
-        request_gpt.metadata["ref"], **updated_main_gpt_dict
+        main_assistant_id, **json_request_assistant
     )
 
     # # OBSERVABILITY: find assistant with id ==
@@ -199,7 +190,7 @@ def publish_gpt(
     #     if assistant.id == request_gpt.metadata["ref"]
     # ][0]
 
-    return (updated_staging_gpt, updated_main_gpt)
+    return (staging_assistant, updated_main_gpt.model_dump())
 
 
 @router.post("/gpt/file", response_model=FileObject)

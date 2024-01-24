@@ -117,6 +117,18 @@ def create_user_gpt(db: Session, user_gpt: schemas.UserGpt):
     return db_user_gpt
 
 
+def delete_all_gpts_and_threads(db: Session) -> List[models.User_gpt]:
+    user_gpts = db.query(models.User_gpt).all()
+    for user_gpt in user_gpts:
+        db.delete(user_gpt)
+    user_gpt_thread = db.query(models.User_gpt_thread).all()
+    for thread in user_gpt_thread:
+        db.delete(thread)
+    db.commit()
+    # return the deleted gpts
+    return user_gpts
+
+
 def get_user_gpts(db: Session, user_id: str) -> list[models.User_gpt]:
     user_gpts = (
         db.query(models.User_gpt)

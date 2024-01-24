@@ -18,28 +18,39 @@ class Model(str, Enum):
     GPT_3_5_TURBO = "gpt-3.5-turbo"
 
 
-class GptMetadata(BaseModel):
+# TODO: align GPT with assistant
+class GptMainMetadata(BaseModel):
     user_name: str
     # TODO: add GPT image
     visibility: Visibility
-    is_staging: bool
-    ref: Optional[str] = None
 
 
-class UpsertGptMetadata(BaseModel):
-    user_name: str
-    visibility: Visibility
+class GptStagingMetadata(GptMainMetadata):
+    is_staging: str
+    ref: str
 
 
-class Gpt(BaseModel):
+class GptMain(BaseModel):
     id: Optional[str]
     description: Optional[str]
     file_ids: list[str]
     # TODO: need to fetch filenames
     instructions: Optional[str]
-    metadata: GptMetadata
+    metadata: GptMainMetadata
     name: str
-    model: Model
+    model: str  # TODO: make enum
+    tools: List[Tool]
+
+
+class GptStaging(BaseModel):
+    id: Optional[str]
+    description: Optional[str]
+    file_ids: list[str]
+    # TODO: need to fetch filenames
+    instructions: Optional[str]
+    metadata: GptStagingMetadata
+    name: str
+    model: str  # TODO: make enum
     tools: List[Tool]
 
 
@@ -47,7 +58,7 @@ class UpsertGpt(BaseModel):
     description: Optional[str]
     file_ids: List[str]
     instructions: Optional[str]
-    metadata: UpsertGptMetadata
+    metadata: GptMainMetadata
     name: str
     model: Model
     tools: List[Tool]
