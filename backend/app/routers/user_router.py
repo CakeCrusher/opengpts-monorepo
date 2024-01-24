@@ -4,6 +4,7 @@ from utils.parsers import get_optional_user_id
 from db.database import get_db
 from sqlalchemy.orm import Session
 from db import crud, schemas
+from utils.api import openai_client
 
 router = APIRouter()
 
@@ -53,4 +54,20 @@ def get_users(db: Session = Depends(get_db)):
     - List[schemas.User]: The list of users.
     """
     db_users = crud.get_users(db)
+    return db_users
+
+
+@router.delete("/users", response_model=List[schemas.User])
+def delete_all_users(db: Session = Depends(get_db)):
+    """
+    Delete all users.
+
+    Returns:
+    - List[schemas.User]: The deleted users.
+    """
+    crud.delete_all_threads(db)
+    for gpt in openai_client.beta.assistants.list().data:
+        openai_client.beta.assistants.delete(gpt.id)
+    crud.delete_all_gpts(db)
+    db_users = crud.delete_all_users(db)
     return db_users

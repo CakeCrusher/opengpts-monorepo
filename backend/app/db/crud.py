@@ -84,6 +84,15 @@ def get_users(db: Session):
     return all_users
 
 
+def delete_all_users(db: Session) -> List[models.User]:
+    users = db.query(models.User).all()
+    for user in users:
+        db.delete(user)
+    db.commit()
+    # return the deleted users
+    return users
+
+
 def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(
         id=str(uuid.uuid4()),
