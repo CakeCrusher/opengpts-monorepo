@@ -3,8 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from utils.parsers import get_user_id
-from db.database import SessionLocal
-from models.gpt import UpsertGpt, GptMain, GptStaging, Gpt
+from models.gpt import GptMain, GptStaging, UpsertGpt, Gpt
 from db.database import get_db
 
 from sqlalchemy.orm import Session
@@ -15,8 +14,7 @@ from utils.api import openai_client
 router = APIRouter()
 
 
-
-@router.post("/gpt", response_model=Gpt)
+@router.post("/gpt", response_model=GptStaging)
 def create_gpt(
     request: UpsertGpt,
     user_id: str = Depends(get_user_id),
@@ -55,7 +53,6 @@ def create_gpt(
     )
 
     return staging_gpt
-
 
 
 @router.delete("/gpt")

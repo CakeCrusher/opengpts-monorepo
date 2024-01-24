@@ -18,47 +18,59 @@ class Model(str, Enum):
     GPT_3_5_TURBO = "gpt-3.5-turbo"
 
 
+class IsStaging(str, Enum):
+    TRUE = "true"
+
+
 # TODO: align GPT with assistant
-class GptMainMetadata(BaseModel):
+class GptMetadata(BaseModel):
     user_name: str
     # TODO: add GPT image
     visibility: Visibility
+    gpt_image: str
+    is_staging: Optional[IsStaging]
+    ref: Optional[str]
 
 
-class GptStagingMetadata(GptMainMetadata):
-    is_staging: str
+class Gpt(BaseModel):
+    id: str
+    name: str
+    model: Model
+    metadata: GptMetadata
+    description: Optional[str]
+    instructions: Optional[str]
+    file_ids: list[str]
+    tools: List[Tool]
+
+
+class GptMetadataMain(BaseModel):
+    user_name: str
+    visibility: Visibility
+    gpt_image: str
+
+
+class GptMain(Gpt):
+    metadata: GptMetadataMain
+
+
+class GptMetadataStaging(BaseModel):
+    user_name: str
+    visibility: Visibility
+    gpt_image: str
+    is_staging: IsStaging
     ref: str
 
 
-class GptMain(BaseModel):
-    id: Optional[str]
-    description: Optional[str]
-    file_ids: list[str]
-    # TODO: need to fetch filenames
-    instructions: Optional[str]
-    metadata: GptMainMetadata
-    name: str
-    model: str  # TODO: make enum
-    tools: List[Tool]
+class GptStaging(Gpt):
+    metadata: GptMetadataStaging
 
 
-class GptStaging(BaseModel):
-    id: Optional[str]
-    description: Optional[str]
-    file_ids: list[str]
-    # TODO: need to fetch filenames
-    instructions: Optional[str]
-    metadata: GptStagingMetadata
-    name: str
-    model: str  # TODO: make enum
-    tools: List[Tool]
-
-
+# same as gpt but without id
 class UpsertGpt(BaseModel):
-    description: Optional[str]
-    file_ids: List[str]
-    instructions: Optional[str]
-    metadata: GptMainMetadata
     name: str
     model: Model
+    metadata: GptMetadataMain
+    description: Optional[str]
+    instructions: Optional[str]
+    file_ids: list[str]
     tools: List[Tool]
