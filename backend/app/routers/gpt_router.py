@@ -48,7 +48,7 @@ def create_gpt(
         "ref": main_gpt.id,
     }
     staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
-
+    print("user_id", user_id)
     crud.create_user_gpt(
         db=db,
         user_gpt=schemas.UserGpt(user_id=user_id, gpt_id=staging_gpt.id),
@@ -82,12 +82,6 @@ def list_gpts(
     - List[Gpt]: The list of GPTs.
     """
     assistants = openai_client.beta.assistants.list()
-    # USE FOR METADATA ERRORS: Useful for for whenever there are changes to
-    # Metadata structure
-    for assistant in assistants.data:
-        print("deleting", assistant)
-        openai_client.beta.assistants.delete(assistant.id)
-    return assistants.data
     all_gpts = [Gpt(**dict(assistant)) for assistant in assistants.data]
     if query:
         all_gpts = [
