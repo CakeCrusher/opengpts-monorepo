@@ -8,8 +8,6 @@ load_dotenv()
 
 ASSISTANTS_URL = os.environ.get("ASSISTANTS_URL")
 
-openai_client = None
-
 openai_client = OpenAI(
     base_url=ASSISTANTS_URL if ASSISTANTS_URL else None,
     api_key=os.environ.get("OPENAI_API_KEY"),
