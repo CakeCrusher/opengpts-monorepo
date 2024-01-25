@@ -36,10 +36,10 @@ def get_users(
     db: Session = Depends(get_db), user_id: str = Depends(get_user_id)
 ):
     """
-    Get a list of all users.
+    Get authenticated user.
 
     Returns:
-    - List[schemas.User]: The list of users.
+    - SafeUser: The authenticated user.
     """
     db_user = crud.get_user(db=db, user_id=user_id)
     if not db_user:

@@ -1,13 +1,3 @@
-"""
-TESTING
-asst_H8r6928abxcTsq3XP5qRXCBD
-thread_KFd3jsCK5LjSMVQfkrBQnQss
-bearer 99d834cd-b052-4d56-9914-818aacca8533
-{
-  "content": "Please solve [1 2 3;4 5 6] x [7 8;9 10;11 12]"
-}
-"""
-
 from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException
 from utils.parsers import get_user_id
@@ -29,15 +19,7 @@ from openai.types.beta.threads.runs import RunStep
 import json
 
 
-# th = client.beta.threads.retrieve("th-1Y2J5Z5QX1QJ5")
-# msgs = client.beta.threads.messages.list(th.id)
-
 router = APIRouter()
-
-
-@router.delete("/thread")
-def delete_all_treads(db: Session = Depends(get_db)):
-    crud.delete_all_threads(db)
 
 
 @router.post("/gpt/{gpt_id}/thread", response_model=CustomThread)
@@ -55,7 +37,7 @@ def create_thread(
     - request (CreateThread): More thread details.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - CustomThread: The created thread.
@@ -67,13 +49,14 @@ def create_thread(
         "last_updated": int(datetime.now().timestamp()).__str__(),
     }
     thread = openai_client.beta.threads.create(metadata=thread_metadata)
+
     user_gpt_thread = schemas.UserGptThread(
         user_id=user_id,
         gpt_id=gpt_id,
         thread_id=thread.id,
     )
     crud.create_thread(db=db, user_gpt_thread=user_gpt_thread)
-    return thread
+    return CustomThread(**thread.model_dump())
 
 
 @router.get("/thread", response_model=List[CustomThread])
@@ -85,7 +68,7 @@ def get_threads(
     Get user threads.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[CustomThread]: The list of threads.
@@ -96,6 +79,11 @@ def get_threads(
         thread = openai_client.beta.threads.retrieve(db_thread.thread_id)
         threads.append(thread)
     return threads
+
+
+@router.delete("/thread")
+def delete_all_treads(db: Session = Depends(get_db)):
+    crud.delete_all_threads(db)
 
 
 @router.post(
@@ -116,22 +104,28 @@ def create_thread_message(
     - request (CreateThreadMessage): The message to create.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[ThreadMessage]: The message history including the
       assistant response.
     """
-    user_message = openai_client.beta.threads.messages.create(
-        thread_id=thread_id,
-        role="user",
-        content=request.content,
-    )
+    try:
+        user_message = openai_client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=request.content,
+        )
 
-    run = openai_client.beta.threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=gpt_id,
-    )
+        run = openai_client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=gpt_id,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="GPT run failed. With status: " + e.__str__(),
+        )
 
     max_wait_iterations = 30  # (max_wait_iterations / 2) = seconds to wait
     i = 0
@@ -163,7 +157,7 @@ def create_thread_message(
     messages = openai_client.beta.threads.messages.list(
         thread_id=thread_id,
     )
-    messages_list = []
+    messages_list: List[ThreadMessage] = []
     for message in messages:
         print("MESSAGE: ", json.dumps(message.model_dump(), indent=2))
         messages_list.append(message)
@@ -190,7 +184,7 @@ def get_thread_messages(
     - thread_id (str): The ID of the thread.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[ThreadMessage]: All of the messages in a the thread.
@@ -227,7 +221,7 @@ def get_thread_runs(
     - thread_id (str): The ID of the thread.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - RunStepsResponse: The run steps in the thread and a hash map of
@@ -281,7 +275,7 @@ def create_thread_run(
     - request (CreateThreadMessage): The message to create.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - RunStepsResponse: The run steps in the run and a hash map of

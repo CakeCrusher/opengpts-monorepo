@@ -22,5 +22,5 @@ models.Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router.router)
 app.include_router(gpt_router.router)
-app.include_router(user_router.router)
 app.include_router(thread_router.router)
+app.include_router(user_router.router)

@@ -1,9 +1,14 @@
 import json
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
+from utils.auth import validate_user_gpt
 
 from utils.parsers import get_user_id
-from models.gpt import GptMain, GptStaging, UpsertGpt, Gpt
+from models.gpt import (
+    GptMain,
+    GptStaging,
+    UpsertGpt,
+)
 from db.database import get_db
 
 from sqlalchemy.orm import Session
@@ -27,7 +32,7 @@ def create_gpt(
     - request (UpsertGpt): The updated GPT data.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - Gpt: The staging GPT instance.
@@ -36,7 +41,7 @@ def create_gpt(
     # Create Main GPT Instance
     main_gpt_dict = dict(request)
     main_gpt_dict["metadata"] = dict(request.metadata)
-    main_gpt = openai_client.beta.assistants.create(**main_gpt_dict)
+    main_gpt = openai_client.beta.assistants.create(**request.model_dump())
 
     # Create Staging GPT Instance
     staging_gpt_dict = dict(request)
@@ -46,27 +51,46 @@ def create_gpt(
         "ref": main_gpt.id,
     }
     staging_gpt = openai_client.beta.assistants.create(**staging_gpt_dict)
-    print("user_id", user_id)
     crud.create_user_gpt(
         db=db,
         user_gpt=schemas.UserGpt(user_id=user_id, gpt_id=staging_gpt.id),
     )
 
-    return staging_gpt
+    return GptStaging(**staging_gpt.model_dump())
 
 
-@router.delete("/gpt")
-def delete_all_gpts(db: Session = Depends(get_db)):
-    for gpt in openai_client.beta.assistants.list().data:
-        openai_client.beta.assistants.delete(gpt.id)
-    crud.delete_all_gpts(db)
-    crud.delete_all_threads(db)
+@router.get("/login/gpt", response_model=List[GptStaging])
+def get_user_gpts(
+    user_id: str = Depends(get_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a list of all GPT assistants.
+
+    Args:
+    - query (str): The query to filter by.
+    - user_id (str): The user ID to filter by.
+
+    Returns:
+    - List[Gpt]: The list of GPTs.
+    """
+    user_gpts = []
+    all_user_gpts = crud.get_user_gpts(db=db, user_id=user_id)
+
+    for user_gpt in all_user_gpts:
+        assistant = openai_client.beta.assistants.retrieve(user_gpt.gpt_id)
+        print("assistant", json.dumps(assistant.model_dump(), indent=2))
+        try:
+            user_gpts.append(GptStaging(**dict(assistant)))
+        except Exception:
+            print("Error parsing assistant to GptStaging", assistant)
+
+    return user_gpts
 
 
-@router.get("/gpt", response_model=List[Gpt])
+@router.get("/gpt", response_model=List[GptMain])
 def list_gpts(
     query: Optional[str] = None,
-    user_id: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     """
@@ -80,21 +104,32 @@ def list_gpts(
     - List[Gpt]: The list of GPTs.
     """
     assistants = openai_client.beta.assistants.list()
-    all_gpts = [Gpt(**dict(assistant)) for assistant in assistants.data]
+    all_gpts = []
+    for assistant in assistants.data:
+        try:
+            if "is_staging" in assistant.metadata:
+                print("is staging", assistant.metadata)
+                continue
+            else:
+                all_gpts.append(GptMain(**dict(assistant)))
+        except Exception as e:
+            print("Error parsing assistant to GptMain", assistant, e)
+
     if query:
         all_gpts = [
             gpt
             for gpt in all_gpts
             if (gpt.description and query in gpt.description)
         ]
-    if user_id:
-        all_user_gpts = crud.get_user_gpts(db=db, user_id=user_id)
-        all_gpts = [
-            gpt
-            for gpt in all_gpts
-            if any(user_gpt.gpt_id == gpt.id for user_gpt in all_user_gpts)
-        ]
     return all_gpts
+
+
+@router.delete("/gpt")
+def delete_all_gpts(db: Session = Depends(get_db)):
+    for gpt in openai_client.beta.assistants.list().data:
+        openai_client.beta.assistants.delete(gpt.id)
+    crud.delete_all_gpts(db)
+    crud.delete_all_threads(db)
 
 
 @router.patch("/gpt/{assistant_id}/update", response_model=GptStaging)
@@ -112,19 +147,13 @@ def update_gpt(
     - request (UpsertGpt): The updated GPT data.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - Gpt: The updated GPT instance.
     """
 
-    user_gpt = crud.get_user_gpt(db=db, user_id=user_id, gpt_id=assistant_id)
-
-    if not user_gpt:
-        raise HTTPException(
-            status_code=404,
-            detail="User does not have access to this GPT instance.",
-        )
+    validate_user_gpt(db, user_id, assistant_id)
 
     # Update the staging GPT Assistant
     updated_gpt = openai_client.beta.assistants.update(
@@ -149,19 +178,14 @@ def publish_gpt(
     - assistant_id (str): The ID of the assistant to update.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - tuple[Gpt, Gpt]: The updated staging then main GPT instances.
     """
 
-    user_gpt = crud.get_user_gpt(db=db, user_id=user_id, gpt_id=assistant_id)
-
-    if not user_gpt:
-        raise HTTPException(
-            status_code=404,
-            detail="User does not have access to this GPT instance.",
-        )
+    # this also verifies that the assistant is staging
+    validate_user_gpt(db, user_id, assistant_id)
 
     request_assistant = openai_client.beta.assistants.retrieve(assistant_id)
 
@@ -174,7 +198,7 @@ def publish_gpt(
     del json_request_assistant["metadata"]["is_staging"]
     del json_request_assistant["metadata"]["ref"]
 
-    updated_main_gpt = openai_client.beta.assistants.update(
+    openai_client.beta.assistants.update(
         main_assistant_id, **json_request_assistant
     )
 
@@ -187,7 +211,7 @@ def publish_gpt(
     #     if assistant.id == request_gpt.metadata["ref"]
     # ][0]
 
-    return (staging_assistant, updated_main_gpt.model_dump())
+    return (GptStaging(**staging_assistant), GptMain(**staging_assistant))
 
 
 @router.post("/gpt/file", response_model=FileObject)
@@ -199,7 +223,7 @@ async def upload_file(file: UploadFile, user_id: str = Depends(get_user_id)):
     - file (UploadFile): The file to upload.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - FileObject: Object containing file id and other details.
