@@ -37,7 +37,7 @@ def create_thread(
     - request (CreateThread): More thread details.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - CustomThread: The created thread.
@@ -68,7 +68,7 @@ def get_threads(
     Get user threads.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[CustomThread]: The list of threads.
@@ -104,7 +104,7 @@ def create_thread_message(
     - request (CreateThreadMessage): The message to create.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[ThreadMessage]: The message history including the
@@ -184,7 +184,7 @@ def get_thread_messages(
     - thread_id (str): The ID of the thread.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - List[ThreadMessage]: All of the messages in a the thread.
@@ -221,7 +221,7 @@ def get_thread_runs(
     - thread_id (str): The ID of the thread.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - RunStepsResponse: The run steps in the thread and a hash map of
@@ -275,7 +275,7 @@ def create_thread_run(
     - request (CreateThreadMessage): The message to create.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - RunStepsResponse: The run steps in the run and a hash map of

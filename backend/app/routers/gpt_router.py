@@ -32,7 +32,7 @@ def create_gpt(
     - request (UpsertGpt): The updated GPT data.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - Gpt: The staging GPT instance.
@@ -59,7 +59,7 @@ def create_gpt(
     return GptStaging(**staging_gpt.model_dump())
 
 
-@router.get("/login/gpts", response_model=List[GptStaging])
+@router.get("/login/gpt", response_model=List[GptStaging])
 def get_user_gpts(
     user_id: str = Depends(get_user_id),
     db: Session = Depends(get_db),
@@ -147,7 +147,7 @@ def update_gpt(
     - request (UpsertGpt): The updated GPT data.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - Gpt: The updated GPT instance.
@@ -178,7 +178,7 @@ def publish_gpt(
     - assistant_id (str): The ID of the assistant to update.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - tuple[Gpt, Gpt]: The updated staging then main GPT instances.
@@ -223,7 +223,7 @@ async def upload_file(file: UploadFile, user_id: str = Depends(get_user_id)):
     - file (UploadFile): The file to upload.
 
     Headers:
-    - auth (str): Bearer <USER_ID>
+    - auth (str): Bearer <JWT_TOKEN>
 
     Returns:
     - FileObject: Object containing file id and other details.
