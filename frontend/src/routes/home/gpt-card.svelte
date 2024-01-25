@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gpt } from './types';
+	import type { Gpt } from "../../types/gpt";
 
 	export let gpt: Gpt;
 </script>

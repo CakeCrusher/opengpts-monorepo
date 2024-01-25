@@ -5,6 +5,7 @@
 	import { fetchApi } from '$lib/fetcher';
 	import { goto } from '$app/navigation';
 	import { user } from '$lib/stores/user';
+	import { fetchUserGpts } from '$lib/stores/gpts';
 
 
 	onMount(async () => {
@@ -25,6 +26,9 @@
 			if (response.email) {
 				// Store the access token and user details
 				user.set(response);
+
+				// run dependent state updates
+				fetchUserGpts();
 
 				// Redirect the user to the home page
 				goto('/');

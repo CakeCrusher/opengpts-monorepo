@@ -2,17 +2,17 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import { gpts } from '$lib/stores/gpts';
-	import type { Gpt } from '$lib/stores/gpts';
 	import { createThreadMessage } from '$lib/stores/threads';
-	import { fetchGpts } from '$lib/stores/gpts';
+	import { fetchPublicGpts } from '$lib/stores/gpts';
 	import Threads from './threads.svelte';
 	import Messages from './messages.svelte';
 	import { selectedThreadId } from './stores';
 	import { page } from '$app/stores';
+	import type { Gpt, GptMain } from '../../../types/gpt';
 
 	export let data: PageData;
 	const threadId = $page.url.searchParams.get('threadId');
-	let gpt: Gpt | undefined = $gpts.find((gpt) => gpt.id === data.props.id);
+	let gpt: Gpt | undefined = $gpts.public.find((gpt) => gpt.id === data.props.id);
 	let inputMessage: string = '';
 
 	async function sendMessage() {
@@ -29,7 +29,7 @@
 
 	onMount(async () => {
 		if (!gpt) {
-			const fetchedGpts = await fetchGpts();
+			const fetchedGpts = await fetchPublicGpts();
 			gpt = fetchedGpts.find((gpt) => gpt.id === data.props.id);
 		}
 		if (threadId) {
