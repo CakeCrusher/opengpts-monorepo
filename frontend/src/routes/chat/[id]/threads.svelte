@@ -2,8 +2,9 @@
 	import { createThread, fetchMessages, fetchThreads, threads } from '$lib/stores/threads';
 	import { onMount } from 'svelte';
 	import { selectedThreadId } from './stores';
+	import { goto } from '$app/navigation';
 
-	export let gptId: string | undefined;
+	export let gptId: string;
 	let threadTitle: string = '';
 
 	async function setThread(threadId: string) {
@@ -12,6 +13,8 @@
 		}
 
 		$selectedThreadId = threadId;
+		// add url parameter threadId
+		goto(`/chat/${gptId}?threadId=${threadId}`);
 		await fetchMessages(gptId, threadId);
 	}
 
