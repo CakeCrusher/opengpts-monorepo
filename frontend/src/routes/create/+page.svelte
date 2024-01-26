@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { user } from '$lib/stores/user';
 	import { afterUpdate } from 'svelte';
-	import { gptEditing, removeFile, uploadFile } from '$lib/stores/gptEditing';
+	import { gptEditing, removeFile, saveGpt, uploadFile } from '$lib/stores/gptEditing';
 	import { Model, ToolTypes, Visibility, type ToolAction } from '../../types/gpt';
 
 	// const unsubscribe = user.subscribe((value) => (user_name = value?.name));
@@ -171,7 +171,8 @@
 				<option value="public">{Visibility.PUBLIC}</option>
 			</select>
 		</div>
-		<input type="submit" value="Create" />
+		<button on:click={saveGpt}>Save</button>
+		<!-- <button on:click={saveGpt}>Publish</button> -->
 	</form>
 {:else}
 	<h3>Must be logged in</h3>
