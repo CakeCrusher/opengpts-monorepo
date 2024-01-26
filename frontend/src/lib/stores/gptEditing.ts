@@ -1,6 +1,6 @@
 // import { fetchApi } from "$lib/fetcher";
 import { get, writable } from 'svelte/store';
-import type { GptStaging, UpsertGpt } from '../../types/gpt';
+import type { GptMain, GptStaging } from '../../types/gpt';
 import { IsStaging, Model, Visibility } from '../../types/gpt';
 import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
 import { fetchApi } from '$lib/fetcher';
@@ -60,17 +60,51 @@ export const removeFile = (fileId: string) => {
 };
 
 export const saveGpt = async () => {
-	const currentGptEditing = get(gptEditing);
-	let newGpt: GptStaging | null = null;
-	if (currentGptEditing.id) {
-		newGpt = await fetchApi(`gpt/${currentGptEditing.id}/update`, 'PATCH', currentGptEditing);
-	} else {
-		newGpt = await fetchApi(`gpt/`, 'POST', currentGptEditing);
-	}
+	try {
+		const currentGptEditing = get(gptEditing);
+		let newGpt: GptStaging;
+		if ('id' in currentGptEditing) {
+			newGpt = await fetchApi(`gpt/${currentGptEditing.id}/update`, 'PATCH', currentGptEditing);
+		} else {
+			newGpt = await fetchApi(`gpt/`, 'POST', currentGptEditing);
+		}
 
-	if (newGpt && newGpt.id) {
-		gptEditing.set(newGpt);
-	} else {
+		if (newGpt && newGpt.id) {
+			gptEditing.set(newGpt);
+			return newGpt;
+		} else {
+			throw new Error('Error saving gpt: ' + newGpt.toString());
+		}
+	} catch (error) {
 		console.error('Error saving gpt');
+		throw error;
 	}
+};
+
+// now create a publishGpt function that will call `gpt/${currentGptEditing.id}/publish`, 'POST' but it must first saveGpt
+export const publishGpt = async () => {
+	try {
+		await saveGpt();
+		const currentGptEditing = get(gptEditing);
+		// will be a tuple of [GptStaging, GptMain]
+		const newGpts: [GptStaging, GptMain] = await fetchApi(
+			`gpt/${currentGptEditing.id}/publish`,
+			'POST',
+			currentGptEditing
+		);
+
+		if (newGpts.length && 'id' in newGpts[0]) {
+			gptEditing.set(newGpts[0]);
+			return newGpts;
+		} else {
+			throw new Error('Error publishing gpt: ' + newGpts.toString());
+		}
+	} catch (error) {
+		console.error('Error publishing gpt');
+		throw error;
+	}
+};
+
+export const resetGptEditing = () => {
+	gptEditing.set(initialState);
 };

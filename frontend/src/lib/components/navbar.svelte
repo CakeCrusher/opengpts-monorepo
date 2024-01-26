@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resetGptEditing } from '$lib/stores/gptEditing';
 	import { user } from '$lib/stores/user';
 	import { onDestroy } from 'svelte';
 
@@ -15,7 +16,7 @@
 	</div>
 	<div class="right">
 		{#if isLoggedIn && user !== null}
-			<a class="link" href="/create">New GPT</a>
+			<a class="link" href="/create" on:click={resetGptEditing}>New GPT</a>
 			<a class="link" href="/logout">Log Out of {$user && $user.name}</a>
 		{:else}
 			<a class="link" href="/login">Register/Login</a>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { user } from '$lib/stores/user';
 	import { afterUpdate } from 'svelte';
-	import { gptEditing, removeFile, saveGpt, uploadFile } from '$lib/stores/gptEditing';
+	import { gptEditing, publishGpt, removeFile, saveGpt, uploadFile } from '$lib/stores/gptEditing';
 	import { Model, ToolTypes, Visibility, type ToolAction } from '../../types/gpt';
 
 	// const unsubscribe = user.subscribe((value) => (user_name = value?.name));
@@ -86,12 +86,21 @@
 	afterUpdate(() => {
 		console.log('gptEditing', $gptEditing);
 	});
+
+	let gptEditingTag = '';
+	$: {
+		if ($gptEditing.id) {
+			gptEditingTag = ' for ' + $gptEditing.id.slice(0, 8) + '...';
+		} else {
+			gptEditingTag = '';
+		}
+	}
 </script>
 
 {#if $user}
 	<h1>Create a GPT</h1>
 	<form>
-		<h2>GPT Details</h2>
+		<h2>GPT Details {gptEditingTag}</h2>
 		<div class="input--mb">
 			<label class="label--block" for="name">Name</label>
 			<input id="name" type="text" placeholder="Name" bind:value={$gptEditing.name} />
@@ -172,7 +181,7 @@
 			</select>
 		</div>
 		<button on:click={saveGpt}>Save</button>
-		<!-- <button on:click={saveGpt}>Publish</button> -->
+		<button on:click={publishGpt}>Publish</button>
 	</form>
 {:else}
 	<h3>Must be logged in</h3>

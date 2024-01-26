@@ -1,10 +1,28 @@
 <script lang="ts">
-	import type { Gpt } from '../../types/gpt';
+	import { gptEditing } from '$lib/stores/gptEditing';
+	import type { Gpt, GptStaging } from '../../types/gpt';
 
 	export let gpt: Gpt;
+	const gptIsStaging = gpt.metadata.is_staging;
+	const setGptEditing = () => {
+		if (gpt.metadata.is_staging) {
+			gptEditing.set(gpt as GptStaging);
+		}
+	};
+
+	let hrefTo: string;
+	let onClick: () => void;
+
+	if (gptIsStaging) {
+		hrefTo = `/create`;
+		onClick = setGptEditing;
+	} else {
+		hrefTo = `/chat/${gpt.id}`;
+		onClick = () => {};
+	}
 </script>
 
-<a class="card" href={`/chat/${gpt.id}`}>
+<a class="card" href={hrefTo} on:click={onClick}>
 	<!-- <img class="card-image" src={gpt.imageUrl} alt="" /> -->
 	<div class="card-content">
 		<h3 class="name">{gpt.name}</h3>
