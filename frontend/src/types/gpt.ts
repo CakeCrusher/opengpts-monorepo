@@ -10,8 +10,12 @@ type ToolCodeInterpreter = {
 type ToolRetrieval = {
 	type: ToolTypes.RETRIEVAL;
 };
+export type ToolAction = {
+	type: ToolTypes.ACTION;
+	data: string;
+};
 
-export type Tool = ToolCodeInterpreter | ToolRetrieval;
+export type Tool = ToolCodeInterpreter | ToolRetrieval | ToolAction;
 
 export enum Visibility {
 	PUBLIC = 'public',

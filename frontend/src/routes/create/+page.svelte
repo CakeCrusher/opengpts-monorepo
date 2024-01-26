@@ -2,7 +2,7 @@
 	import { user } from '$lib/stores/user';
 	import { afterUpdate } from 'svelte';
 	import { gptEditing, removeFile, uploadFile } from '$lib/stores/gptEditing';
-	import { Model, ToolTypes, Visibility } from '../../types/gpt';
+	import { Model, ToolTypes, Visibility, type ToolAction } from '../../types/gpt';
 
 	// const unsubscribe = user.subscribe((value) => (user_name = value?.name));
 
@@ -45,6 +45,27 @@
 
 		fileUploadLoading = false;
 	};
+
+	function addNewAction() {
+		gptEditing.update((current) => {
+			const newAction: ToolAction = {
+				type: ToolTypes.ACTION,
+				data: ''
+			};
+			return {
+				...current,
+				tools: [...current.tools, newAction]
+			};
+		});
+	}
+
+	function removeTool(index: number) {
+		gptEditing.update((current) => {
+			let toolsCopy = [...current.tools];
+			toolsCopy.splice(index, 1);
+			return { ...current, tools: toolsCopy };
+		});
+	}
 
 	let codeInterpreterEnabled: boolean = false;
 
@@ -113,7 +134,14 @@
 		</div> -->
 			<div>
 				<label class="label--block" for="function-calling">Actions</label>
-				<button>New Action</button>
+				{#each $gptEditing.tools as tool, index}
+					{#if tool.type === ToolTypes.ACTION}
+						<textarea rows="3" bind:value={tool.data} placeholder="Enter action data here..."
+						></textarea>
+						<button type="button" on:click={() => removeTool(index)}>Remove</button>
+					{/if}
+				{/each}
+				<button type="button" on:click={addNewAction}>New Action</button>
 			</div>
 		</div>
 		<div>
