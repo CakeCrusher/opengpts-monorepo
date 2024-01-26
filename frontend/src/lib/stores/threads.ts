@@ -26,7 +26,7 @@ type MessageContentImageFile = {
 
 type MessageContentText = {
 	text: {
-		annotations: any[];
+		annotations: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 		value: string;
 	};
 	type: 'text';
@@ -38,7 +38,7 @@ export type ThreadMessage = {
 	content: (MessageContentImageFile | MessageContentText)[];
 	created_at: number;
 	file_ids: string[];
-	metadata: any;
+	metadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 	object: ThreadMessageObject;
 	role: ThreadMessageRole;
 	run_id: string | null;
@@ -75,7 +75,7 @@ export async function createThread(gptId: string, title: string) {
 }
 
 export async function createThreadMessage(gptId: string, threadId: string, message: string) {
-	console.log("creating thread message")
+	console.log('creating thread message');
 	const res = await fetchApi(`gpt/${gptId}/thread/${threadId}/messages`, 'POST', {
 		content: message
 	});

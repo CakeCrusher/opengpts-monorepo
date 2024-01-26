@@ -1,114 +1,153 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { fetchApi } from '$lib/fetcher';
 	import { user } from '$lib/stores/user';
-	import { onDestroy } from 'svelte';
+	import { afterUpdate } from 'svelte';
+	import { gptEditing, removeFile, uploadFile } from '$lib/stores/gptEditing';
+	import { Model, ToolTypes, Visibility } from '../../types/gpt';
 
-	let user_name: string | undefined;
-	let name: string;
-	let description: string;
-	let instructions: string;
-	let model: string;
-	let usesCodeInterpreter: boolean = false;
-	let usesWebBrowsing: boolean = false;
-	let visibility: string;
+	// const unsubscribe = user.subscribe((value) => (user_name = value?.name));
 
-	const unsubscribe = user.subscribe((value) => (user_name = value?.name));
+	// onDestroy(unsubscribe);
 
-	onDestroy(unsubscribe);
+	// function submit() {
+	// 	let tools = [];
 
-	function submit() {
-		let tools = [];
+	// 	if (usesCodeInterpreter) {
+	// 		tools.push({ type: 'code-interpreter' });
+	// 	}
+	// 	if (usesWebBrowsing) {
+	// 		tools.push({ type: 'retrieval' });
+	// 	}
 
-		if (usesCodeInterpreter) {
-			tools.push({ type: 'code-interpreter' });
+	// }
+
+	let selectedFiles: FileList | null = null;
+	let fileUploadLoading: boolean = false;
+
+	function clearInput() {
+		const input = document.getElementById('files') as HTMLInputElement;
+		if (input) {
+			input.value = ''; // Clear the input
 		}
-		if (usesWebBrowsing) {
-			tools.push({ type: 'retrieval' });
-		}
-
-		fetchApi('gpt', 'POST', {
-			name,
-			description,
-			instructions,
-			model,
-			metadata: {
-				user_name,
-				visibility
-			},
-			tools,
-			file_ids: []
-		}).then(() => {
-			goto('/');
-		});
 	}
+
+	const submitFile = async () => {
+		if (!selectedFiles || selectedFiles.length === 0) return;
+		const file = selectedFiles[0];
+
+		fileUploadLoading = true;
+
+		try {
+			await uploadFile(file);
+			clearInput();
+		} catch (error) {
+			console.error('File upload error: ', error);
+		}
+
+		fileUploadLoading = false;
+	};
+
+	let codeInterpreterEnabled: boolean = false;
+
+	$: {
+		if (codeInterpreterEnabled) {
+			gptEditing.update((value) => ({
+				...value,
+				tools: [...value.tools, { type: ToolTypes.CODE_INTERPRETER }]
+			}));
+		} else {
+			gptEditing.update((value) => ({
+				...value,
+				tools: value.tools.filter((tool) => tool.type !== ToolTypes.CODE_INTERPRETER)
+			}));
+		}
+	}
+
+	afterUpdate(() => {
+		console.log('gptEditing', $gptEditing);
+	});
 </script>
 
-<h1>Create a GPT</h1>
-<form on:submit={submit}>
-	<h2>GPT Details</h2>
-	<div class="input--mb">
-		<label class="label--block" for="name">Name</label>
-		<input id="name" type="text" placeholder="Name" bind:value={name} />
-	</div>
-	<div class="input--mb">
-		<label class="label--block" for="description">Description</label>
-		<textarea
-			id="description"
-			cols="30"
-			rows="10"
-			placeholder="Description"
-			bind:value={description}
-		></textarea>
-	</div>
-	<div class="input--mb">
-		<label class="label--block" for="instructions">Instructions</label>
-		<textarea
-			id="instructions"
-			cols="30"
-			rows="10"
-			placeholder="Instructions"
-			bind:value={instructions}
-		></textarea>
-	</div>
-	<div>
-		<label class="label--block" for="model">Model</label>
-		<select id="model" bind:value={model}>
-			<option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-		</select>
-	</div>
-	<div>
-		<h3>Tools</h3>
-		<div>
-			<input id="code-interpreter" type="checkbox" bind:checked={usesCodeInterpreter} />
-			<label for="code-interpreter">Code Interpreter</label>
+{#if $user}
+	<h1>Create a GPT</h1>
+	<form>
+		<h2>GPT Details</h2>
+		<div class="input--mb">
+			<label class="label--block" for="name">Name</label>
+			<input id="name" type="text" placeholder="Name" bind:value={$gptEditing.name} />
 		</div>
 		<div class="input--mb">
+			<label class="label--block" for="description">Description</label>
+			<textarea
+				id="description"
+				cols="30"
+				rows="10"
+				placeholder="Description"
+				bind:value={$gptEditing.description}
+			></textarea>
+		</div>
+		<div class="input--mb">
+			<label class="label--block" for="instructions">Instructions</label>
+			<textarea
+				id="instructions"
+				cols="30"
+				rows="10"
+				placeholder="Instructions"
+				bind:value={$gptEditing.instructions}
+			></textarea>
+		</div>
+		<div>
+			<label class="label--block" for="model">Model</label>
+			<select id="model" bind:value={$gptEditing.model}>
+				<option value="gpt-3.5-turbo">{Model.GPT_3_5_TURBO}</option>
+			</select>
+		</div>
+		<div>
+			<h3>Tools</h3>
+			<div>
+				<input id="code-interpreter" type="checkbox" bind:checked={codeInterpreterEnabled} />
+				<label for="code-interpreter">Code Interpreter</label>
+			</div>
+			<!-- <div class="input--mb">
 			<input id="retrieval" type="checkbox" bind:checked={usesWebBrowsing} />
 			<label for="retrieval">Web Browsing</label>
+		</div> -->
+			<div>
+				<label class="label--block" for="function-calling">Actions</label>
+				<button>New Action</button>
+			</div>
 		</div>
 		<div>
-			<label class="label--block" for="function-calling">Actions</label>
-			<button>New Action</button>
+			<h3>Knowledge</h3>
+			<div>
+				{#each $gptEditing.file_ids as file_id}
+					<div class="fileContainer">
+						<span>{file_id}</span>
+						<button on:click={() => removeFile(file_id)}> Remove </button>
+					</div>
+				{/each}
+				<label for="files">Upload files:</label>
+				<input
+					id="files"
+					type="file"
+					disabled={fileUploadLoading}
+					bind:files={selectedFiles}
+					on:change={submitFile}
+				/>
+			</div>
 		</div>
-	</div>
-	<div>
-		<h3>Knowledge</h3>
-		<div>
-			<label for="files">Upload files:</label>
-			<input id="files" type="file" multiple />
+		<div class="input--mb">
+			<h3>Visibility</h3>
+			<label for="visibility">Visibility</label>
+			<select id="visibility" bind:value={$gptEditing.metadata.visibility}>
+				<option value="private">{Visibility.PRIVATE}</option>
+				<option value="public">{Visibility.PUBLIC}</option>
+			</select>
 		</div>
-	</div>
-	<div class="input--mb">
-		<h3>Visibility</h3>
-		<label for="visibility">Visibility</label>
-		<select id="visibility" bind:value={visibility}>
-			<option value="public">Public</option>
-			<option value="private">Private</option>
-		</select>
-	</div>
-	<input type="submit" value="Create" />
-</form>
+		<input type="submit" value="Create" />
+	</form>
+{:else}
+	<h3>Must be logged in</h3>
+{/if}
 
 <style>
 	h2 {

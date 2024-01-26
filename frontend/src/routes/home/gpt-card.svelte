@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gpt } from "../../types/gpt";
+	import type { Gpt } from '../../types/gpt';
 
 	export let gpt: Gpt;
 </script>
@@ -33,9 +33,9 @@
 		margin-top: -0.5rem;
 	}
 
-	.card-image {
+	/* .card-image {
 		border-radius: 0.5rem;
-	}
+	} */
 
 	.name {
 		margin-top: 0;

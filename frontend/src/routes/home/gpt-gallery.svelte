@@ -1,5 +1,5 @@
 <script>
-	import { onMount, afterUpdate } from 'svelte';
+	import { onMount } from 'svelte';
 	import { gpts, fetchPublicGpts, fetchUserGpts } from '$lib/stores/gpts';
 	import { user } from '$lib/stores/user';
 	import GptCard from './gpt-card.svelte';
@@ -23,7 +23,7 @@
 	{:else}
 		<p>Log in to see your GPTs</p>
 	{/if}
-	<hr>
+	<hr />
 	<h3>Public GPTs</h3>
 	<div class="gallery">
 		{#each $gpts.public as gpt}

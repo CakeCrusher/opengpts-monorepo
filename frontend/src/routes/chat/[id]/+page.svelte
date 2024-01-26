@@ -8,7 +8,7 @@
 	import Messages from './messages.svelte';
 	import { selectedThreadId } from './stores';
 	import { page } from '$app/stores';
-	import type { Gpt, GptMain } from '../../../types/gpt';
+	import type { Gpt } from '../../../types/gpt';
 
 	export let data: PageData;
 	const threadId = $page.url.searchParams.get('threadId');

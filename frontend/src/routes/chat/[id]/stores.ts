@@ -1,3 +1,3 @@
 import { writable } from 'svelte/store';
 
-export let selectedThreadId = writable<string>('');
+export const selectedThreadId = writable<string>(''); 

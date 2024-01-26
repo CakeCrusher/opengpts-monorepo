@@ -5,7 +5,7 @@
 </script>
 
 <div class="messages">
-	{#each [...$threads.find((thread) => thread.id === $selectedThreadId)?.threadMessages || []].reverse() as message}
+	{#each [...($threads.find((thread) => thread.id === $selectedThreadId)?.threadMessages || [])].reverse() as message}
 		<Message {message} />
 	{/each}
 </div>
