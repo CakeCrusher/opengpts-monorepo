@@ -1,40 +1,58 @@
 <script lang="ts">
 	import { createThread, fetchMessages, fetchThreads, threads } from '$lib/stores/threads';
 	import { onMount } from 'svelte';
-	import { selectedThreadId } from './stores';
+	import { goto } from '$app/navigation';
 
-	export let gptId: string | undefined;
+	export let gptId: string;
 	let threadTitle: string = '';
+	let selectedThreadId: string = '';
 
 	async function setThread(threadId: string) {
 		if (!gptId) {
 			return;
 		}
 
-		$selectedThreadId = threadId;
+		selectedThreadId = threadId;
+
+		// add url parameter threadId
+		goto(`/chat/${gptId}?threadId=${threadId}`);
 		await fetchMessages(gptId, threadId);
 	}
 
-	onMount(async () => {
-		if ($threads.length === 0) {
-			await fetchThreads();
+	async function handleCreateThread() {
+		if (!gptId) {
+			return;
 		}
+
+		selectedThreadId = await createThread(gptId, threadTitle);
+
+		goto(`/chat/${gptId}?threadId=${selectedThreadId}`);
+	}
+
+	let gptThreads = $threads.filter((thread) => thread.metadata.gpt_id === gptId).reverse();
+
+	$: {
+		if ($threads) {
+			gptThreads = $threads.filter((thread) => thread.metadata.gpt_id === gptId).reverse();
+		}
+	}
+
+	onMount(async () => {
+		await fetchThreads(); // TODO: inefficient
 	});
 </script>
 
 <div class="threads">
 	{#if gptId}
 		<input bind:value={threadTitle} type="text" placeholder="Thread Title" />
-		<button class="create-thread" on:click={async () => await createThread(gptId, threadTitle)}
-			>Create Thread</button
-		>
+		<button class="create-thread" on:click={handleCreateThread}>Create Thread</button>
 	{/if}
 	<div class="thread-selectors">
-		{#each $threads as thread}
+		{#each gptThreads as thread}
 			<button
 				class="thread-selector"
-				class:selected={thread.id === $selectedThreadId}
-				on:click={async () => setThread(thread.id)}>{thread.metadata.title}</button
+				class:selected={thread.id === selectedThreadId}
+				on:click={() => setThread(thread.id)}>{thread.metadata.title}</button
 			>
 		{/each}
 	</div>

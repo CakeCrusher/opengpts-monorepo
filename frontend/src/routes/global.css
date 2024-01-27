@@ -1,41 +1,46 @@
 * {
-    font-family: 'Mulish', sans-serif;
+	font-family: 'Mulish', sans-serif;
 }
 
-body {
-    margin: 0;
+body,
+html {
+	height: 100%;
+	margin: 0;
 }
 
 input[type='text'],
 input[type='email'],
 textarea {
-    box-sizing: border-box;
-    width: 100%;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid #ccc;
-    font-size: 1rem;
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	border: 1px solid #ccc;
+	font-size: 1rem;
 }
 
 .input--mb {
-    margin-bottom: 1rem;
+	margin-bottom: 1rem;
 }
 
 .label--block {
-    display: block;
-    padding-bottom: 0.25rem;
+	display: block;
+	padding-bottom: 0.25rem;
 }
 
-button, input[type="submit"], select {
-    cursor: pointer;
-    border: none;
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #ddd;
-    font-size: 1rem;
-    font-weight: 600;
+button,
+input[type='submit'],
+select {
+	cursor: pointer;
+	border: none;
+	border-radius: 0.5rem;
+	padding: 0.5rem 1rem;
+	background-color: #ddd;
+	font-size: 1rem;
+	font-weight: 600;
 }
 
-button:hover, input[type="submit"]:hover {
-    background-color: #ccc;
+button:hover,
+input[type='submit']:hover {
+	background-color: #ccc;
 }

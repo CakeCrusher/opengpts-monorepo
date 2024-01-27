@@ -1,50 +1,38 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
-	import { gpts } from '$lib/stores/gpts';
-	import { createThreadMessage } from '$lib/stores/threads';
-	import { fetchPublicGpts } from '$lib/stores/gpts';
+	import { fetchPublicGpts, fetchUserGpts, allGpts } from '$lib/stores/gpts';
 	import Threads from './threads.svelte';
-	import Messages from './messages.svelte';
-	import { selectedThreadId } from './stores';
 	import { page } from '$app/stores';
-	import type { Gpt, GptMain } from '../../../types/gpt';
+	import Chat from './chat.svelte';
 
 	export let data: PageData;
-	const threadId = $page.url.searchParams.get('threadId');
-	let gpt: Gpt | undefined = $gpts.public.find((gpt) => gpt.id === data.props.id);
-	let inputMessage: string = '';
+	let threadId = $page.url.searchParams.get('threadId');
+	const gptId = data.props.id;
+	let gpt = $allGpts.find((gpt) => gpt.id === gptId);
 
-	async function sendMessage() {
-		if (!gpt) {
-			return;
-		}
-
-		if (!$selectedThreadId) {
-			alert('Select a thread first!');
-			return;
-		}
-		await createThreadMessage(data.props.id, $selectedThreadId, inputMessage);
+	$: if ($page.url.searchParams.get('threadId')) {
+		threadId = $page.url.searchParams.get('threadId');
 	}
 
 	onMount(async () => {
 		if (!gpt) {
-			const fetchedGpts = await fetchPublicGpts();
-			gpt = fetchedGpts.find((gpt) => gpt.id === data.props.id);
-		}
-		if (threadId) {
-			$selectedThreadId = threadId;
+			await fetchPublicGpts();
+			await fetchUserGpts();
+			gpt = $allGpts.find((gpt) => gpt.id === gptId);
 		}
 	});
 </script>
 
 <div class="content">
-	<Threads gptId={gpt?.id} />
+	<Threads {gptId} />
 	<main>
-		<Messages />
-		<form class="message-box" on:submit={sendMessage}>
-			<input type="text" placeholder="Message Assistant..." bind:value={inputMessage} />
-		</form>
+		{#if gptId && threadId}
+			<!-- <h1>Chatting with {gpt?.name}</h1> -->
+			<Chat {gptId} {threadId} preMessage={() => {}} />
+		{:else}
+			<h1>Select a GPT and a thread to chat</h1>
+		{/if}
 	</main>
 </div>
 
@@ -57,10 +45,6 @@
 	main {
 		box-sizing: border-box;
 		padding: 2rem;
-		width: 100%;
-	}
-
-	.message-box {
 		width: 100%;
 	}
 </style>

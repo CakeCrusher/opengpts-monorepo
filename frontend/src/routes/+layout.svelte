@@ -7,7 +7,6 @@
 	import { user } from '$lib/stores/user';
 	import { fetchUserGpts } from '$lib/stores/gpts';
 
-
 	onMount(async () => {
 		let token = localStorage.getItem('token');
 
@@ -18,7 +17,7 @@
 			token = urlToken;
 			urlParams.delete('token');
 			window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
-		} 
+		}
 		if (token) {
 			localStorage.setItem('token', token);
 			const response = await fetchApi('login', 'GET');
