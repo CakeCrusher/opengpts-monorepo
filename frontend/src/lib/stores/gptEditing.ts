@@ -2,7 +2,8 @@
 import { get, writable } from 'svelte/store';
 import type { GptMain, GptStaging } from '../../types/gpt';
 import { IsStaging, Model, Visibility } from '../../types/gpt';
-import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
+// TODO: PUBLIC_BUSINESS_LAYER_URL should not be hard coded should be an environment variable
+import { PUBLIC_BUSINESS_LAYER_URL } from '../fetcher';
 import { fetchApi } from '$lib/fetcher';
 import { addUserGpt } from './gpts';
 
