@@ -19,7 +19,7 @@
 			<a class="link" href="/create" on:click={resetGptEditing}>New GPT</a>
 			<a class="link" href="/logout">Log Out of {$user && $user.name}</a>
 		{:else}
-			<a class="link" href="/login">Register/Login</a>
+			<a class="link google-button" href="/login"><i class="ph ph-google-logo"></i>Sign In</a>
 		{/if}
 	</div>
 </div>
@@ -46,5 +46,14 @@
 
 	.link:hover {
 		background-color: #ddd;
+	}
+
+	.google-button {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: white;
+		padding: 0.25rem 0.75rem;
+		padding-right: 0.85rem;
 	}
 </style>
