@@ -1,3 +1,4 @@
+import random
 from fastapi.responses import RedirectResponse
 from jose import jwt
 from datetime import datetime, timedelta
@@ -46,15 +47,28 @@ def get_users(
         raise HTTPException(status_code=404, detail="User not found")
     return schemas.SafeUser(**db_user.__dict__)
 
+def random_id_gen():
+    return ''.join(random.choice('0123456789ABCDEF') for i in range(16))
+
 
 @router.get("/login/google")
-async def login_google():
+async def login_google(db: Session = Depends(get_db)):
     """
     Redirects the user to the Google login page.
     """
 
-    redirect_to = f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={GOOGLE_CLIENT_ID}&redirect_uri={GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"  # noqa
-    return RedirectResponse(url=redirect_to)
+    try:
+        user = get_or_create_user(db, schemas.UserCreate(email=random_id_gen(), name="fake", profile_image="https://files.oaiusercontent.com/file-BQJUkJG7tqDDvW627A1GJwFV?se=2024-01-27T19%3A12%3A32Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C%20immutable&rscd=attachment%3B%20filename%3Dc4ee2ea5-57f8-4f81-bcde-3c0a7dd3c1fd.webp&sig=5YiKHMAYMV49hHBYyZqxMuWSlo9yRoxeFr8iVu3ATu0%3D"))  #no
+        access_token = generate_access_token(user)
+
+        redirect_to = f"{CLIENT_LOGIN_REDIRECT_URI}?token={access_token}"
+        return RedirectResponse(
+            url=redirect_to, headers={"auth": f"Bearer {access_token}"}
+        )
+    except requests.exceptions.RequestException:
+        return {
+            "error": "An error occurred during the authentication process."
+        }
 
 
 @router.get("/auth/google")
