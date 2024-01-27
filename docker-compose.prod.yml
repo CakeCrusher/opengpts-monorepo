@@ -35,8 +35,8 @@ services:
       GOOGLE_CLIENT_SECRET:
       GOOGLE_REDIRECT_URI:
       ACCESS_TOKEN_EXPIRE_MINUTES:
-      JWT_SECRET:
-      CLIENT_LOGIN_REDIRECT_URI:
+      JWT_SECRET: secret
+      CLIENT_LOGIN_REDIRECT_URI: http://localhost:4173
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   frontendprod:
