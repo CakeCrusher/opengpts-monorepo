@@ -22,7 +22,7 @@
 	let publicGptsToShow = $gpts.public;
 
 	$: {
-		if ($gptSearchQuery) {
+		if ($gptSearchQuery || $gpts) {
 			const newUserGptsToShow = queryFilter($gpts.user);
 			userGptsToShow = newUserGptsToShow as GptStaging[];
 			publicGptsToShow = queryFilter($gpts.public);

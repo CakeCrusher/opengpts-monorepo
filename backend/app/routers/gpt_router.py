@@ -108,7 +108,8 @@ def list_gpts(
     for assistant in assistants.data:
         try:
             if "is_staging" in assistant.metadata:
-                print("is staging", assistant.metadata)
+                continue
+            if assistant.metadata["visibility"] == "public":
                 continue
             else:
                 all_gpts.append(GptMain(**dict(assistant)))
