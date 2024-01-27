@@ -22,7 +22,7 @@
 		onClick = () => {};
 	}
 
-	if (user) {
+	if (!user || !$user?.email) {
 		hrefTo = `/`;
 		onClick = () => {
 			alert('You must be logged in to chat with a GPT.');

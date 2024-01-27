@@ -1,6 +1,10 @@
+<script>
+	import { gptSearchQuery } from '$lib/stores/gptSearchQuery';
+</script>
+
 <div class="search-bar-container">
 	<i class="search-icon ph ph-magnifying-glass"></i>
-	<input type="text" class="search-bar" placeholder="Search GPTs" />
+	<input type="text" class="search-bar" placeholder="Search GPTs" bind:value={$gptSearchQuery} />
 </div>
 
 <style>

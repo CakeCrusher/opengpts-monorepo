@@ -1,8 +1,33 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { gpts, fetchPublicGpts, fetchUserGpts } from '$lib/stores/gpts';
 	import { user } from '$lib/stores/user';
 	import GptCard from './gpt-card.svelte';
+	import type { Gpt, GptStaging } from '../../types/gpt';
+	import { gptSearchQuery } from '$lib/stores/gptSearchQuery';
+
+	const queryFilter = (gpts: Gpt[]) => {
+		return gpts.filter((gpt) => {
+			if (
+				gpt.name.toLowerCase().includes($gptSearchQuery.toLowerCase()) ||
+				gpt.description?.toLowerCase().includes($gptSearchQuery.toLowerCase())
+			) {
+				return true;
+			}
+			return false;
+		});
+	};
+
+	let userGptsToShow = $gpts.user;
+	let publicGptsToShow = $gpts.public;
+
+	$: {
+		if ($gptSearchQuery) {
+			const newUserGptsToShow = queryFilter($gpts.user);
+			userGptsToShow = newUserGptsToShow as GptStaging[];
+			publicGptsToShow = queryFilter($gpts.public);
+		}
+	}
 
 	onMount(() => {
 		fetchPublicGpts();
@@ -16,7 +41,7 @@
 	<h3>My GPTs</h3>
 	{#if $user}
 		<div class="gallery">
-			{#each $gpts.user as gpt}
+			{#each userGptsToShow as gpt}
 				<GptCard {gpt} />
 			{/each}
 		</div>
@@ -26,7 +51,7 @@
 	<hr />
 	<h3>Public GPTs</h3>
 	<div class="gallery">
-		{#each $gpts.public as gpt}
+		{#each publicGptsToShow as gpt}
 			<GptCard {gpt} />
 		{/each}
 	</div>
