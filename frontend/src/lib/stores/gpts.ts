@@ -18,7 +18,6 @@ export const allGpts = derived(gpts, ($gpts) => {
 
 export async function fetchPublicGpts() {
 	const res = await fetchApi('gpt', 'GET');
-	console.log('gpts.public', res);
 	gpts.update((state) => {
 		return { ...state, public: res };
 	});
@@ -27,7 +26,6 @@ export async function fetchPublicGpts() {
 
 export async function fetchUserGpts() {
 	const res = await fetchApi(`login/gpt`, 'GET');
-	console.log('gpts.user', res);
 	gpts.update((state) => {
 		return { ...state, user: res };
 	});

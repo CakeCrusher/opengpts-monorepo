@@ -1,6 +1,5 @@
 import { fetchApi } from '$lib/fetcher';
 import { writable } from 'svelte/store';
-import { selectedThreadId } from '../../routes/chat/[id]/stores';
 
 export type Thread = {
 	id: string;
@@ -49,7 +48,8 @@ export const threads = writable<Thread[]>([]);
 
 export async function fetchThreads() {
 	const res = await fetchApi(`thread`, 'GET');
-	threads.set(res);
+	const allThreads = res.map((thread: Thread) => ({ ...thread, threadMessages: [] }));
+	threads.set(allThreads);
 }
 
 export async function fetchMessages(gptId: string, threadId: string) {
@@ -67,15 +67,16 @@ export async function createThread(gptId: string, title: string) {
 	const res = await fetchApi(`gpt/${gptId}/thread`, 'POST', {
 		title
 	});
+	res['threadMessages'] = [];
 	threads.update((threads) => {
 		threads.push(res);
 		return threads;
 	});
-	selectedThreadId.set(res.id);
+
+	return res.id;
 }
 
 export async function createThreadMessage(gptId: string, threadId: string, message: string) {
-	console.log('creating thread message');
 	const res = await fetchApi(`gpt/${gptId}/thread/${threadId}/messages`, 'POST', {
 		content: message
 	});

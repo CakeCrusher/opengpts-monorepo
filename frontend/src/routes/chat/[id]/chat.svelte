@@ -29,6 +29,7 @@
 <Messages {threadId} />
 <form class="message-box" on:submit={sendMessage}>
 	<input
+		class="message-input"
 		disabled={!(gpt && threadId)}
 		type="text"
 		placeholder="Message Assistant..."
@@ -39,5 +40,9 @@
 <style>
 	.message-box {
 		width: 100%;
+		margin: 0;
+	}
+	.message-input {
+		margin: 0;
 	}
 </style>

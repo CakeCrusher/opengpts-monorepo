@@ -28,7 +28,9 @@
 	.links {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		padding: 0.5rem;
+		height: 2rem;
 		background-color: #b8f2d5;
 	}
 
