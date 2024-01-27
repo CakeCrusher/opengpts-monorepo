@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { allGpts, gpts } from '$lib/stores/gpts';
+	import { allGpts } from '$lib/stores/gpts';
 	import { createThreadMessage } from '$lib/stores/threads';
 	import Messages from './messages.svelte';
 	import type { Gpt } from '../../../types/gpt';
@@ -9,16 +9,10 @@
 	export let preMessage: () => void;
 	// get the gpt_id that was passed as a parameter
 
-	$: {
-		if ($allGpts) {
-			console.log('allGpts', $allGpts);
-		}
-	}
-
 	let gpt: Gpt | undefined = $allGpts.find((gpt) => gpt.id === gptId);
 	let inputMessage: string = '';
 
-	console.log("gpt", gpt, "threadId", threadId)
+	console.log('gpt', gpt, 'threadId', threadId);
 
 	async function sendMessage() {
 		await preMessage();

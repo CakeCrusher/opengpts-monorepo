@@ -12,8 +12,6 @@ export const gpts = writable<allGptsState>({
 	user: []
 });
 
-
-
 export const allGpts = derived<typeof gpts, Gpt[]>(gpts, ($gpts) => {
 	return [...$gpts.public, ...$gpts.user];
 });
@@ -27,12 +25,11 @@ export function addPublicGpt(gpt: GptMain) {
 
 export function addUserGpt(gpt: GptStaging) {
 	gpts.update((state) => {
-		console.log("new user gpt", { ...state, user: [...state.user, gpt] })
+		console.log('new user gpt', { ...state, user: [...state.user, gpt] });
 		return { ...state, user: [...state.user, gpt] };
 	});
 	return gpt;
 }
-
 
 export async function fetchPublicGpts() {
 	const res = await fetchApi('gpt', 'GET');

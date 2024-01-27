@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { gptEditing } from '$lib/stores/gptEditing';
+	import { user } from '$lib/stores/user';
 	import type { Gpt, GptStaging } from '../../types/gpt';
 
 	export let gpt: Gpt;
@@ -19,6 +20,13 @@
 	} else {
 		hrefTo = `/chat/${gpt.id}`;
 		onClick = () => {};
+	}
+
+	if (user) {
+		hrefTo = `/`;
+		onClick = () => {
+			alert('You must be logged in to chat with a GPT.');
+		};
 	}
 </script>
 

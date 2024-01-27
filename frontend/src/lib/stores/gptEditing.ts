@@ -66,7 +66,6 @@ export const saveGpt = async () => {
 		let newGpt: GptStaging;
 		if ('id' in currentGptEditing && currentGptEditing.id) {
 			newGpt = await fetchApi(`gpt/${currentGptEditing.id}/update`, 'PATCH', currentGptEditing);
-			
 		} else {
 			newGpt = await fetchApi(`gpt/`, 'POST', currentGptEditing);
 			addUserGpt(newGpt);
