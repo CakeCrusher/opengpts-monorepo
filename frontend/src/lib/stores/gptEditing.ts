@@ -4,6 +4,7 @@ import type { GptMain, GptStaging } from '../../types/gpt';
 import { IsStaging, Model, Visibility } from '../../types/gpt';
 import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
 import { fetchApi } from '$lib/fetcher';
+import { addUserGpt } from './gpts';
 
 const initialState: GptStaging = {
 	id: '',
@@ -63,10 +64,12 @@ export const saveGpt = async () => {
 	try {
 		const currentGptEditing = get(gptEditing);
 		let newGpt: GptStaging;
-		if ('id' in currentGptEditing) {
+		if ('id' in currentGptEditing && currentGptEditing.id) {
 			newGpt = await fetchApi(`gpt/${currentGptEditing.id}/update`, 'PATCH', currentGptEditing);
+			
 		} else {
 			newGpt = await fetchApi(`gpt/`, 'POST', currentGptEditing);
+			addUserGpt(newGpt);
 		}
 
 		if (newGpt && newGpt.id) {

@@ -1,6 +1,6 @@
 import { fetchApi } from '$lib/fetcher';
 import { derived, writable } from 'svelte/store';
-import type { GptMain, GptStaging } from '../../types/gpt';
+import type { Gpt, GptMain, GptStaging } from '../../types/gpt';
 
 export type allGptsState = {
 	public: GptMain[];
@@ -12,9 +12,27 @@ export const gpts = writable<allGptsState>({
 	user: []
 });
 
-export const allGpts = derived(gpts, ($gpts) => {
+
+
+export const allGpts = derived<typeof gpts, Gpt[]>(gpts, ($gpts) => {
 	return [...$gpts.public, ...$gpts.user];
 });
+
+export function addPublicGpt(gpt: GptMain) {
+	gpts.update((state) => {
+		return { ...state, public: [...state.public, gpt] };
+	});
+	return gpt;
+}
+
+export function addUserGpt(gpt: GptStaging) {
+	gpts.update((state) => {
+		console.log("new user gpt", { ...state, user: [...state.user, gpt] })
+		return { ...state, user: [...state.user, gpt] };
+	});
+	return gpt;
+}
+
 
 export async function fetchPublicGpts() {
 	const res = await fetchApi('gpt', 'GET');
