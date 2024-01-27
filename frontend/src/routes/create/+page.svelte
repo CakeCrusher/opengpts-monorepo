@@ -84,10 +84,65 @@
 		}
 	}
 
+	let retrievalEnabled: boolean = false;
+
+	$: {
+		if (retrievalEnabled) {
+			gptEditing.update((value) => ({
+				...value,
+				tools: [...value.tools, { type: ToolTypes.RETRIEVAL }]
+			}));
+		} else {
+			gptEditing.update((value) => ({
+				...value,
+				tools: value.tools.filter((tool) => tool.type !== ToolTypes.RETRIEVAL)
+			}));
+		}
+	}
+
+	$: {
+		if ($gptEditing.file_ids.length > 0) {
+			gptEditing.update((value) => ({
+				...value,
+				tools: [...value.tools, { type: ToolTypes.RETRIEVAL }]
+			}));
+		} else {
+			gptEditing.update((value) => ({
+				...value,
+				tools: value.tools.filter((tool) => tool.type !== ToolTypes.RETRIEVAL)
+			}));
+		}
+	}
+
+	$: {
+		if ($gptEditing) {
+			console.log('$gptEditing', $gptEditing);
+		}
+	}
+
 	let threadId: string = '';
 
+	const modelValidation = () => {
+		if ($gptEditing.model === Model.GPT_3_5_TURBO) {
+			if ($gptEditing.file_ids.length > 0) {
+				throw new Error('GPT-3.5 Turbo does not support knowledge files');
+			}
+		}
+		return true;
+	};
+
 	const onSave = async () => {
+		try {
+			modelValidation();
+		} catch (error: any) {
+			alert(error.message);
+			return;
+		}
+
+		console.log('$gptEditing', $gptEditing);
+
 		await saveGpt();
+
 		const threadTitle = 'gpt_testing-' + new Date().toLocaleString();
 		threadId = await createThread($gptEditing.id, threadTitle);
 	};
@@ -141,6 +196,7 @@
 					<label class="label--block" for="model">Model</label>
 					<select id="model" bind:value={$gptEditing.model}>
 						<option value="gpt-3.5-turbo">{Model.GPT_3_5_TURBO}</option>
+						<option value="gpt-4-turbo-preview">{Model.GPT_4_TURBO_PREVIEW}</option>
 					</select>
 				</div>
 				<div>
@@ -149,6 +205,7 @@
 						<input id="code-interpreter" type="checkbox" bind:checked={codeInterpreterEnabled} />
 						<label for="code-interpreter">Code Interpreter</label>
 					</div>
+
 					<!-- <div class="input--mb">
 				<input id="retrieval" type="checkbox" bind:checked={usesWebBrowsing} />
 				<label for="retrieval">Web Browsing</label>

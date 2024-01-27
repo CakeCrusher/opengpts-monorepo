@@ -16,6 +16,7 @@ class Visibility(str, Enum):
 
 class Model(str, Enum):
     GPT_3_5_TURBO = "gpt-3.5-turbo"
+    GPT_4_TURBO_PREVIEW = "gpt-4-turbo-preview"
 
 
 class IsStaging(str, Enum):

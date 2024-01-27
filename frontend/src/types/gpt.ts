@@ -23,7 +23,8 @@ export enum Visibility {
 }
 
 export enum Model {
-	GPT_3_5_TURBO = 'gpt-3.5-turbo'
+	GPT_3_5_TURBO = 'gpt-3.5-turbo',
+	GPT_4_TURBO_PREVIEW = 'gpt-4-turbo-preview'
 }
 
 export enum IsStaging {

@@ -37,6 +37,7 @@ def create_gpt(
     Returns:
     - Gpt: The staging GPT instance.
     """
+    print("request", json.dumps(request.model_dump(), indent=2))
 
     # Create Main GPT Instance
     main_gpt_dict = dict(request)
