@@ -7,6 +7,9 @@
 	import { user } from '$lib/stores/user';
 	import { fetchUserGpts } from '$lib/stores/gpts';
 
+
+
+	
 	onMount(async () => {
 		let token = localStorage.getItem('token');
 
