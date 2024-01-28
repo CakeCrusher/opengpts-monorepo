@@ -1,5 +1,6 @@
 ## TODO
-- [ ] Add /thread endpoints 
+
+- [ ] Add /thread endpoints
   - [ ] sending messages
   - [ ] recieve all threads
 - [ ] Add /user endpoints
