@@ -2,7 +2,7 @@
 import { get, writable } from 'svelte/store';
 import type { GptMain, GptStaging } from '../../types/gpt';
 import { IsStaging, Model, Visibility } from '../../types/gpt';
-import { PUBLIC_BUSINESS_LAYER_URL } from '$env/static/public';
+import { PUBLIC_GPT_TO_ASSISTANT_API } from '$env/static/public';
 import { fetchApi } from '$lib/fetcher';
 import { addUserGpt } from './gpts';
 
@@ -31,7 +31,7 @@ export async function uploadFile(file: File) {
 	formData.append('file', file, file.name); // Append the file to the FormData object
 
 	try {
-		const response = await fetch(`${PUBLIC_BUSINESS_LAYER_URL}/gpt/file`, {
+		const response = await fetch(`${PUBLIC_GPT_TO_ASSISTANT_API}/gpt/file`, {
 			method: 'POST',
 			headers: {
 				...(token ? { auth: `Bearer ${token}` } : {}) // Correctly set the Authorization header

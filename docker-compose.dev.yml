@@ -15,10 +15,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  backendprod:
+  backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/backend
     ports:
       - "8000:8000"
     depends_on:
@@ -37,19 +39,7 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: $ACCESS_TOKEN_EXPIRE_MINUTES
       JWT_SECRET: $JWT_SECRET
       CLIENT_LOGIN_REDIRECT_URI: $CLIENT_LOGIN_REDIRECT_URI
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
-
-  frontendprod:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-    ports:
-      - "4173:4173"
-    depends_on:
-      - backendprod
-    environment:
-      PUBLIC_GPT_TO_ASSISTANT_API: $PUBLIC_GPT_TO_ASSISTANT_API
-    command: npm run preview
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   postgres_data:

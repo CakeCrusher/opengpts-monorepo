@@ -1,0 +1,11 @@
+repos:
+  - repo: https://github.com/prettier/prettier
+    rev: '2.4.1'  # Use the ref you want to point at
+    hooks:
+      - id: prettier
+        args: [--write]
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: 'v7.32.0'  # Use the ref you want to point at
+    hooks:
+      - id: eslint
+        args: [--fix]
